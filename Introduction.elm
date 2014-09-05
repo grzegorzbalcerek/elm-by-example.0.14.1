@@ -15,7 +15,7 @@ Programming techniques.
 
 This tutorial does not cover installing and configuring an Elm
 programming environment. The Elm [web page](http://elm-lang.org)
-provides installation instructions for various operating systems.
+provides installation instructions.
 
 Elm is a relatively new programming language. It is evolving
 quickly. Breaking changes are not something that is avoided at all
