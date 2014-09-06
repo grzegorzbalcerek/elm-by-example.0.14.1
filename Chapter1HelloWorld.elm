@@ -9,8 +9,8 @@ content = [markdown|
 
 # Chapter 1 Hello World
 
-Our first example will display the “Hello World” message in several
-different ways. The first program — *[HelloWorld1.elm](HelloWorld1.elm)* — is presented below.
+The first example will display the “Hello World” message. The program
+— *[HelloWorld1.elm](HelloWorld1.elm)* — is presented below.
 
       main = plainText "Hello World"
 
