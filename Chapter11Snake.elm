@@ -4,7 +4,7 @@ import Lib (..)
 import Window
 
 content w = pageTemplate [content1,container w 820 middle picture1,content2]
-            "Chapter10KeyboardSignals" "toc" "" w
+            "Chapter10KeyboardSignals" "toc" "Chapter12TicTacToe" w
 main = lift content Window.width
 
 content1 = [markdown|
@@ -291,7 +291,6 @@ The module creates several signals and combines them together. The
 following figure presents how the individual signals are combined
 together to produce the main game signal.
 
-
 |]
 
 sigBox a b c w x line = signalFunctionBox 14 18 50 a b c w x (line*100-300-50)
@@ -410,5 +409,12 @@ The `stateSignal` is used in the `main` function:
 
 The `main` function returns a `Signal Element` signal which is
 interpreted by Elm’s runtime, rendering the application.
+
+In order to transform the game state, we have used a monolitic `step`
+function, that reacts to each possible combination of input event and
+current state. That approach works, but it has the disadvantage that
+the function which transforms the state may become big and difficult
+to maintain for larger programs. The [next](Chapter12TicTacToe.html)
+chapter presents a program which uses a different approach.
 
 |]

@@ -22,5 +22,6 @@ content = [markdown|
 #### [Chapter 9 Calculator](Chapter9Calculator.html)
 #### [Chapter 10 Keyboard Signals](Chapter10KeyboardSignals.html)
 #### [Chapter 11 Snake](Chapter11Snake.html)
+#### [Chapter 12 Tic Tac Toe](Chapter12TicTacToe.html)
 
 |]

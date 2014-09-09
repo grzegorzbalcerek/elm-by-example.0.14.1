@@ -13,7 +13,7 @@ import Graphics.Element
 import CalculatorView
 import CalculatorModel
 
-version = "2014-09-08"
+version = "2014-09-09"
 
 main = lift content Window.width
 

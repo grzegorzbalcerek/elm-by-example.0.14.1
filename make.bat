@@ -55,6 +55,8 @@ elm %RUNTIME% -m KeyboardSignals4.elm
 elm %RUNTIME% -m Chapter11Snake.elm
 elm %RUNTIME% -m Snake.elm
 elm %RUNTIME% -m SnakeView.elm
+elm %RUNTIME% -m Chapter12TicTacToe.elm
+elm %RUNTIME% -m TicTacToe.elm
 
 cd ..
 
