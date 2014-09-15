@@ -1,7 +1,6 @@
+@echo off
 
-set RUNTIME=--set-runtime=C:\Local\ElmPlatform\0.12.3\share\elm-runtime.js
-set RUNTIME=--set-runtime=http://elm-lang.org/elm-runtime.js
-rem set RUNTIME=--set-runtime=elm-runtime.js
+set RUNTIME=--set-runtime=elm-runtime.js
 rem set RUNTIME=
 
 rem rmdir /q/s target
@@ -12,7 +11,11 @@ copy /y *.elm target
 
 cd target
 
-elm %RUNTIME% -m Lib.elm
+echo /* > elm-runtime.js
+type ..\..\Elm\LICENSE >> elm-runtime.js
+echo */ >> elm-runtime.js
+type C:\Users\grzes\AppData\Roaming\cabal\i386-windows-ghc-7.8.3\Elm-0.13\elm-runtime.js >> elm-runtime.js
+
 elm %RUNTIME% -m index.elm
 elm %RUNTIME% -m toc.elm
 elm %RUNTIME% -m Introduction.elm
@@ -35,6 +38,7 @@ elm %RUNTIME% -m EyesModel.elm
 elm %RUNTIME% -m Eyes.elm
 elm %RUNTIME% -m Chapter6TimeSignals.elm
 elm %RUNTIME% -m TimeSignals.elm
+elm %RUNTIME% -m EyesDelayed.elm
 elm %RUNTIME% -m Chapter7RandomSignals.elm
 elm %RUNTIME% -m RandomSignals1.elm
 elm %RUNTIME% -m RandomSignals2.elm
@@ -60,6 +64,7 @@ elm %RUNTIME% -m TicTacToe.elm
 
 cd ..
 
+copy /y target\elm-runtime.js target\build
 copy /y code\* target\build
 copy /y code\WindowSignals2.html target\build\WindowSignals2.txt
 rem copy /y C:\Local\ElmPlatform\0.12.3\share\elm-runtime.js target\build

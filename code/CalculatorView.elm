@@ -2,6 +2,7 @@ module CalculatorView where
 
 import CalculatorModel (..)
 import Graphics.Input (input,clickable)
+import Text
 
 makeButton : String -> ButtonType -> Element
 makeButton label size =

@@ -2,6 +2,7 @@
 
 import Lib (..)
 import Window
+import Text
 
 content w = pageTemplate [content1,container w 490 middle picture1,content2,container w 310 middle picture2,content3]
             "Chapter4WindowSignals" "toc" "Chapter6TimeSignals" w

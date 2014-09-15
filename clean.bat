@@ -1,3 +1,4 @@
+@echo off
 rmdir /q/s target
 rmdir /q/s code\build
 rmdir /q/s code\cache

@@ -11,16 +11,26 @@ headerHeight = 70
 pageTemplate : [Element] -> String -> String -> String -> Int -> Element
 pageTemplate content leftHref upHref rightHref w =
   let line = collage w 5 [ filled black (rect (toFloat w) 1) ]
-      linkArrow href code = if href == ""
+--      linkArrow href code = if href == ""
+--                            then empty
+--                            else String.fromList [ Char.fromCode code ] |>
+--                                 toText |>
+--                                 Text.height 60 |>
+--                                 Text.link (href ++ ".html") |>
+--                                 Text.style Text.defaultStyle |>
+--                                 Text.line Text.Under |>
+--                                 centered
+--      leftArrow = linkArrow leftHref 8678
+--      upArrow = linkArrow upHref 8679
+--      rightArrow = linkArrow rightHref 8680
+      upArrowForm = group [ filled black (rect 10 20) |> moveY -9
+                          , filled black (path [(0,15), (-15,0),(15,0)]) ]
+      linkArrow href form = if href == ""
                             then empty
-                            else String.fromList [ Char.fromCode code ] |>
-                                 toText |>
-                                 Text.height 60 |>
-                                 centered |>
-                                 link (href ++ ".html")
-      leftArrow = linkArrow leftHref 8678
-      upArrow = linkArrow upHref 8679
-      rightArrow = linkArrow rightHref 8680
+                            else collage headerHeight headerHeight [form] |> link (href ++ ".html")
+      leftArrow = linkArrow leftHref (upArrowForm |> rotate (degrees 90))
+      upArrow = linkArrow upHref upArrowForm
+      rightArrow = linkArrow rightHref (upArrowForm |> rotate (degrees -90))
       footerContent = [markdown|
 <center>Elm by Example. Copyright © [Grzegorz Balcerek](http://www.grzegorzbalcerek.net) 2014.<br>
 This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.

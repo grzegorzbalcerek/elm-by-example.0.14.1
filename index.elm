@@ -9,11 +9,12 @@ import SnakeView
 import FibonacciBars
 import CirclesView
 import Text (..)
+import Text
 import Graphics.Element
 import CalculatorView
 import CalculatorModel
 
-version = "2014-09-09"
+version = "Built on 2014-09-16 using Elm 0.13."
 
 main = lift content Window.width
 
@@ -29,12 +30,12 @@ content w = pageTemplate [ spacer 30 30
 
 title = toText "Elm by Example" |>
         bold |>
-        height 60 |>
+        Text.height 60 |>
         centered
 
 author = toText "Grzegorz Balcerek" |>
          bold |>
-         height 40 |>
+         Text.height 40 |>
          centered
 
 tocLink : Element

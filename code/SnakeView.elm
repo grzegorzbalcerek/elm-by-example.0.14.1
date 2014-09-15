@@ -1,7 +1,10 @@
 module SnakeView where
 
+import Text
+import Maybe (maybe)
 import SnakeModel (..)
-import Text (..)
+import SnakeModel
+type Position = SnakeModel.Position
 
 unit = 15
 innerSize = unit * boxSize
@@ -24,11 +27,11 @@ drawFood position = drawPositions green [position]
 
 gameOver : Element
 gameOver =
-    toText "Game Over" |>
-    color red |>
-    bold |>
-    height 60 |>
-    centered |>
+    Text.toText "Game Over" |>
+    Text.color red |>
+    Text.bold |>
+    Text.height 60 |>
+    Text.centered |>
     container outerSize outerSize middle
 
 instructions : Element

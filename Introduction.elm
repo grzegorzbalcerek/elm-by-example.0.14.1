@@ -23,7 +23,7 @@ cost. With new Elm releases certain parts of this tutorial may become
 obsolete. I am planning to update the tutorial as new Elm versions
 appear, however you may expect a time lag between new Elm versions and
 new versions of this tutorial. This version of the tutorial targets
-Elm 0.12.3.
+Elm 0.13.
 
 I am not treating this tutorial as a finished work. You may expect its
 content to evolve and to be updated. Partly because of the Elm

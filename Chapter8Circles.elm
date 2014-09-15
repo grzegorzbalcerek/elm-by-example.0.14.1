@@ -407,9 +407,9 @@ modulo the box size.
       computeCoordinate startingPointCoordinate boxSize velocity time =
         let
           distance = startingPointCoordinate + round(velocity * time / 1000)
-          distanceMod = distance `mod` boxSize
-          distanceDiv = distance `div` boxSize
-        in if (distanceDiv `mod` 2 == 0) then distanceMod else boxSize - distanceMod
+          distanceMod = distance % boxSize
+          distanceDiv = distance // boxSize
+        in if (distanceDiv % 2 == 0) then distanceMod else boxSize - distanceMod
 
 The `positionedCircle` function transforms a `Circle` value
 representing its initial state, into a new `Circle` value with its

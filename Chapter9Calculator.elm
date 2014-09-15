@@ -30,6 +30,7 @@ thdeclaration and a list of imports:
       import Char
       import Set
       import String
+      import Maybe (maybe)
 
 The following line defines a new data type called `ButtonSize`:
 
@@ -228,7 +229,7 @@ The `calculate` function is defined as follows:
 
       calculate : Float -> String -> String -> Float
       calculate number op input =
-        let number2 = maybe 0.0 id (String.toFloat input)
+        let number2 = maybe 0.0 identity (String.toFloat input)
         in if | op == "+" -> number + number2
               | op == "-" -> number - number2
               | op == "*" -> number * number2
@@ -301,6 +302,7 @@ definition starts as follows:
 
       import CalculatorModel (..)
       import Graphics.Input (Input,input,clickable)
+      import Text
 
 After the imports, the `makeButton` function is defined. That function
 creates an element representing a calculator button. It takes a string

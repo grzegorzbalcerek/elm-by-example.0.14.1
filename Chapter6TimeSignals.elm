@@ -42,16 +42,7 @@ There are also functions which convert values in the opposite direction:
 Besides the above functions, the `Time` module defines functions which
 create time related signals. The *[EyesDelayed.elm](EyesDelayed.elm)*
 program, presented below, is a modification of the
-*[Eyes.elm](Eyes.elm)* program from the previous chapter. The program
-uses two signal-creating functions from the `Time` module.
-
-The `delay` function takes a `Time` value and a signal, and creates
-another signal which outputs the same events as the input signal, but
-delayed by the given time.
-
-The `since` function takes a `Time` value `t` and another signal and
-outputs a `Boolean` signal which is true during time `t` after every
-event from the input signal.
+*[Eyes.elm](Eyes.elm)* program from the previous chapter.
 
       import Mouse
       import Window
@@ -71,6 +62,16 @@ event from the input signal.
 
       eyes (w,h) (x,y) = eyesView (w,h) (pupilsCoordinates (w,h) (x,y))
 
+The program uses two signal-creating functions from the `Time` module.
+
+The `delay` function takes a `Time` value and a signal, and creates
+another signal which outputs the same events as the input signal, but
+delayed by the given time.
+
+The `since` function takes a `Time` value `t` and another signal and
+outputs a `Boolean` signal which is true during time `t` after every
+event from the input signal.
+
 The `delayedMousePosition` signal is a signal of `Mouse.position`
 values delayed by two seconds. The `combinedSignal` is a signal that
 combines other signals according to certain rules. If the user does
@@ -82,7 +83,7 @@ function. The result is, that after a click, for the next 2 seconds,
 the pupils repeat the moves that they did in the 2 second period
 before the click (provided the mouse clicks do not happen more often
 than every 2 seconds). You can see the program in action
-[here](EyesDelayed.elm).
+[here](EyesDelayed.html).
 
 There are other functions defined in the `Time` module.  The
 *[TimeSignals.elm](TimeSignals.elm)* program (a working example is

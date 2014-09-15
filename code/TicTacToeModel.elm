@@ -41,13 +41,13 @@ playerWon player =
         all (\{row}     -> row == 3)       fields ||
         all (\{col,row} -> col == row)     fields ||
         all (\{col,row} -> col + row == 4) fields
-  in not .
-     isEmpty .
-     filter fieldsAreInLine .
-     map (map fst) .
-     filter (all (\(_,p) -> p == player)) .
-     filter (\x -> length x == 3) .
-     subsequences
+  in subsequences >>
+     filter (\x -> length x == 3) >>
+     filter (all (\(_,p) -> p == player)) >>
+     map (map fst) >>
+     filter fieldsAreInLine >>
+     isEmpty >>
+     not
 
 addMove : Move -> GameState -> GameState
 addMove move state =
@@ -83,9 +83,9 @@ undoMoves state = case state of
 
 processClick : (Int,Int) -> GameState -> GameState
 processClick (x,y) =
-    let col = 1 + x `div` 100
-        row = 1 + y `div` 100
+    let col = 1 + x // 100
+        row = 1 + y // 100
     in
       if col >= 1 && col <= 3 && row >= 1 && row <= 3
       then makeHumanAndComputerMove {col=col,row=row}
-      else id
+      else identity

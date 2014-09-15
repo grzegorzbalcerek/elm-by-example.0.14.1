@@ -12,6 +12,6 @@ combinedSignal = ifFunction <~ since (2*second) Mouse.clicks
                              ~ delayedMousePosition
                              ~ Mouse.position
   
-main = lift2 eyes Window.dimensions combined
+main = lift2 eyes Window.dimensions combinedSignal
 
 eyes (w,h) (x,y) = eyesView (w,h) (pupilsCoordinates (w,h) (x,y))

@@ -1,6 +1,7 @@
 module SnakeModel where
 
 import Set
+import Maybe (maybe)
 
 type Position = { x: Int, y: Int }
 type Delta = { dx: Int, dy: Int }
@@ -16,7 +17,7 @@ data Event = Tick Position | Direction Delta | NewGame | Ignore
 
 boardSize = 15
 boxSize = boardSize + boardSize + 1
-velocity = 5
+velocity = 50
 
 nextPosition : Snake -> Delta -> Position
 nextPosition snake {dx,dy} =
@@ -26,11 +27,11 @@ nextPosition snake {dx,dy} =
 moveSnakeForward : Snake -> Delta -> Maybe Position -> Snake
 moveSnakeForward snake delta food =
   let next = nextPosition snake delta
-      tailFunction = maybe tail (\f -> if next == f then id else tail) food
+      tailFunction = maybe tail (\f -> if next == f then identity else tail) food
   in
     if isEmpty snake.back
     then { front = [next]
-         , back = tailFunction . reverse <| snake.front }
+         , back = (tailFunction << reverse) snake.front }
     else { front = next :: snake.front
          , back = tailFunction snake.back }
 
@@ -57,13 +58,13 @@ step event state =
                                                    else state.delta }
       (Tick newFood, _) -> { state
                            | ticks <- state.ticks + 1
-                           , snake <- if state.ticks `mod` velocity == 0
+                           , snake <- if state.ticks % velocity == 0
                                       then moveSnakeForward state.snake state.delta state.food
                                       else state.snake
-                           , gameOver <- if state.ticks `mod` velocity == 0 then collision state else False
+                           , gameOver <- if state.ticks % velocity == 0 then collision state else False
                            , food <- maybe
                                      (if isInSnake state.snake newFood then Nothing else Just newFood)
-                                     (\f -> if state.ticks `mod` velocity == 0 && head state.snake.front == f then Nothing else state.food)
+                                     (\f -> if state.ticks % velocity == 0 && head state.snake.front == f then Nothing else state.food)
                                      state.food
                            }
       (Ignore,_) -> state

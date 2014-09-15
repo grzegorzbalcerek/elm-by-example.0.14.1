@@ -40,19 +40,20 @@ font. What if we want to use a different font? The *[HelloWorld2.elm](HelloWorld
 program, presented below, shows one way styling the message in a
 custom way. You can see it in action [here](HelloWorld2.html).
 
-      import Text (..)
+      import Text
       main : Element
-      main = toText "Hello World" |>
-             color blue |>
-             italic |>
-             bold |>
-             height 60 |>
-             leftAligned
+      main = Text.toText "Hello World" |>
+             Text.color blue |>
+             Text.italic |>
+             Text.bold |>
+             Text.height 60 |>
+             Text.leftAligned
 
 In order to style to our message, we use functions from the `Text`
-module from Elm’s standard library. The first line: `import Text (..)`
-imports all functions from that module, so we can directly use them in
-our program.
+module from Elm’s standard library. The first line: `import Text`
+imports the `Text` module, allowing us to reference its functions in
+our program. We reference a function by prefixing the function name with
+the module name and the dot.
 
 The second line is the `main` function type declaration (or in other
 words, its signature). Signatures are optional and we did not have it
@@ -77,12 +78,13 @@ compiler would complain:
       $ elm HelloWorld2.elm
       [1 of 1] Compiling Main                ( HelloWorld2.elm )
       Type error between lines 3 and 8:
-              (((((toText "Hello World") |> (color blue)) |> italic) |>
-                bold) |>
-               (height 60)) |>
-              leftAligned
+              (((((Text.toText "Hello World") |> (Text.color blue)) |>
+                 Text.italic) |>
+                Text.bold) |>
+               (Text.height 60)) |>
+              Text.leftAligned
 
-         Expected Type: Element
+         Expected Type: Graphics.Element.Element
            Actual Type: String
 
 The `main` function body contains a set of expressions separated with
@@ -100,7 +102,7 @@ The body of our `main` function consists of several function
 applications chained together. In fact, it could alternatively have
 been written in the following way:
 
-      main = leftAligned (height 60 (bold (italic (color blue (toText "Hello World")))))
+      main = Text.leftAligned (Text.height 60 (Text.bold (Text.italic (Text.color blue (Text.toText "Hello World")))))
 
 Let’s now analyze what the function does. It starts with a call to the
 `toText` function, which transforms a string into a value of type
@@ -160,22 +162,28 @@ function. Consider the *[HelloWorld3.elm](HelloWorld3.elm)* program, which displ
 same text that *[HelloWorld2.elm](HelloWorld2.elm)* does, but is written in a slightly
 different way.
 
-      import Text (..)
+      import Text as T
 
       makeBlue : Text -> Text
-      makeBlue = color blue
+      makeBlue = T.color blue
 
       main : Element
-      main = toText "Hello World" |>
+      main = T.toText "Hello World" |>
              makeBlue |>
-             italic |>
-             bold |>
-             height 60 |>
-             leftAligned
+             T.italic |>
+             T.bold |>
+             T.height 60 |>
+             T.leftAligned
+
+The first difference is the use of a *qualified* import. By suffixing
+the import statement for the `Text` module with the `as T` clause, we
+make the `Text` module available with the qualified name `T` instead
+of the full name `Text`. The references to the functions defined in
+that module must now be prefixed with `T.` instead of `Text.`.
 
 The `main` function differs from its equivalent in the previous
-program by using an auxiliary function `makeBlue` instead of the
-`color blue` expression.
+program by using the auxiliary function `makeBlue` instead of directly
+calling the `color` function with the `blue` argument.
 
 Let us analyze the `makeBlue` function. Its body consists of applying
 the `blue` value (of type `Color`) as the argument of the `color`
@@ -190,11 +198,10 @@ a two-argument function `color` into a one-argument function
 which has its color set to blue.
 
 The `Text` module is part of the Elm standard library. We have so far
-only used a small subset of its functions. You can see what other
-fuctions it provides on its
-[documentation](http://library.elm-lang.org/catalog/elm-lang-Elm/0.12.3/Text)
-web page on the [library.elm-lang.org](http://library.elm-lang.org/)
-web site.
+only used a small subset of its functions, but it contains more of
+them. If you want to verify what are the functions that a module
+provide, try to find the module on the
+[library.elm-lang.org](http://library.elm-lang.org/) web site.
 
 Let us now turn to the last example in this chapter. We will display
 text specified using the

@@ -30,7 +30,7 @@ directionSignal =
 
 newGameSignal : Signal Event
 newGameSignal =
- always NewGame <~ (keepIf id False <| Keyboard.isDown (Char.toCode 'N'))
+ always NewGame <~ (keepIf identity False <| Keyboard.isDown (Char.toCode 'N'))
 
 eventSignal : Signal Event
 eventSignal = merges [tickSignal, directionSignal, newGameSignal]

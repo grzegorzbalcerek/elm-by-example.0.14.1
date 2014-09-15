@@ -45,7 +45,17 @@ parameter. Notice, that not only the value has changed (it has been
 rounded), but its type as well. It is now `Int`, which represents
 integer numbers. By preceding the function call expression with a name
 and the equals sign, we have assigned the name to the result
-value. Let’s now add something to `x`.
+value.
+
+We can use the REPL to find out the signature of the `round` function
+by entering its name alone.
+
+      > round
+      <function: round> : Float -> Int
+
+As you could expect, the signature of the `round` function says that
+the function takes a floating point number and returns an
+integer. Let’s now add something to `x`.
 
       > x + 1.0
       [1 of 1] Compiling Repl                ( repl-temp-000.elm )
@@ -101,6 +111,32 @@ you provide an argument of a wrong type, you will get a compilation
 error. In that case you may need to use a conversion function, like
 `round` or `toFloat`.
 
+Besides, the `+`, `-` and `*` operators for addition, substracting and
+multiplication, Elm provides two operators for division: `/` and
+`//`. One is operating on `Float` values and the other one on `Int`
+values. Let’s use the REPL to show their signatures. However, since
+they are operators, and not functions with alphanumeric names, we need
+to enclose them in parenthesis.
+
+      > (/)
+      <function> : Float -> Float -> Float
+      > (//)
+      <function> : Int -> Int -> Int
+
+There is also the `%` operator, for taking a modulo of two numbers.
+
+      > (%)
+      <function> : Int -> Int -> Int
+
+Here are examples of using those operators:
+
+      > 10 / 3
+      3.3333333333333335 : Float
+      > 10 // 3
+      3 : Int
+      > 10 % 3
+      1 : Int
+
 Let’s now go back to our program displaying colorful bars. The program
 consists of two files. The *[FibonacciBars.elm](FibonacciBars.elm)*
 file defines the `main` function. But let’s first a look at the
@@ -114,11 +150,11 @@ module. Here is its content:
         let fibonacci' n acc =
               if n <= 2
               then acc
-              else fibonacci' (n-1) ((head acc + (head . tail) acc) :: acc)
+              else fibonacci' (n-1) ((head acc + (tail >> head) acc) :: acc)
         in fibonacci' n [1,1] |> reverse
 
       fibonacciWithIndexes : Int -> [(Int,Int)]
-      fibonacciWithIndexes n = zip [0..20] (fibonacci n)
+      fibonacciWithIndexes n = zip [0..n] (fibonacci n)
 
 It begins with a module declaration. The declaration consists of the
 `module` keyword followed by the module name and the `where` keyword,
@@ -185,12 +221,16 @@ function returns a list without its first element.
       [2,3,4] : [number]
 
 The composition of `tail` and `head` returns the second element from
-the list. Two functions can be composed in Elm using the `.` (dot)
-operator. Thus `(f . g) x` is equivalent to `f (g x)`.
+the list. Two functions can be composed in Elm using the `>>` or `<<`
+operators. The `f (g x)` expression is equivalent to both `(g >> f) x`
+and `(f << g) x` — both operators are equivalent, except for the order
+of arguments.
 
       > head (tail [1,2,3,4])
       2 : number
-      > (head . tail) [1,2,3,4]
+      > (head << tail) [1,2,3,4]
+      2 : number
+      > (tail >> head) [1,2,3,4]
       2 : number
 
 The `::` operator yields a new list with its left operand (an element)
@@ -282,7 +322,7 @@ Let’s now look at the contents of the *[FibonacciBars.elm](FibonacciBars.elm)*
 
       color n =
         let colors = [red,orange,yellow,green,blue,purple,brown]
-        in drop (n `mod` (length colors)) colors |> head
+        in drop (n % (length colors)) colors |> head
 
       bar (index,n) = flow right [
         collage (n*20) 20 [filled (color index) (rect (toFloat n * 20) 20)],
@@ -307,18 +347,10 @@ takes two arguments: the number of elements to be dropped and a list.
       [3,4,5] : [number]
 
 The number of elements to be dropped is calculated by taking a modulo
-of `n` and the length of the list of colors. The `mod` function
+of `n` and the length of the list of colors. The `%` operator
 calculates the modulo of two numbers:
 
-      > mod 10 3
-      1 : Int
-
-The `color` function uses `mod` in the “infix” notation. In order to
-use a regular, two-argument function in the “infix” notation, we
-enclose the function name in backsticks and place it between both
-operands.
-
-      > 10 `mod` 3
+      > 10 % 3
       1 : Int
 
 The `bar` function produces a colored rectangle together with a number

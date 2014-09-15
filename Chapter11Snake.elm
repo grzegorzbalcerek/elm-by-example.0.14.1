@@ -97,11 +97,11 @@ the move.
       moveSnakeForward : Snake -> Delta -> Maybe Position -> Snake
       moveSnakeForward snake delta food =
         let next = nextPosition snake delta
-            tailFunction = maybe tail (\f -> if next == f then id else tail) food
+            tailFunction = maybe tail (\f -> if next == f then identity else tail) food
         in
           if isEmpty snake.back
           then { front = [next]
-               , back = tailFunction . reverse <| snake.front }
+               , back = (tailFunction << reverse) snake.front }
           else { front = next :: snake.front
                , back = tailFunction snake.back }
 
@@ -157,13 +157,13 @@ auxiliary functions described above.
                                                          else state.delta }
             (Tick newFood, _) -> { state
                                  | ticks <- state.ticks + 1
-                                 , snake <- if state.ticks `mod` velocity == 0
+                                 , snake <- if state.ticks % velocity == 0
                                             then moveSnakeForward state.snake state.delta state.food
                                             else state.snake
-                                 , gameOver <- if state.ticks `mod` velocity == 0 then collision state else False
+                                 , gameOver <- if state.ticks % velocity == 0 then collision state else False
                                  , food <- maybe
                                            (if isInSnake state.snake newFood then Nothing else Just newFood)
-                                           (\f -> if state.ticks `mod` velocity == 0 && head state.snake.front == f then Nothing else state.food)
+                                           (\f -> if state.ticks % velocity == 0 && head state.snake.front == f then Nothing else state.food)
                                            state.food
                                  }
             (Ignore,_) -> state
@@ -195,12 +195,34 @@ it from the board.
 
 The `SnakeView` module, defined in the
 *[SnakeView.elm](SnakeView.elm)* file, contains functions responsible
-for drawing the game. It begins in the usual way.
+for drawing the game. It begins with the module declaration and a
+block of imports.
 
       module SnakeView where
 
+      import Text
+      import Maybe (maybe)
       import SnakeModel (..)
-      import Text (..)
+      import SnakeModel
+      type Position = SnakeModel.Position
+
+The `import SnakeModel (..)` line imports the members of the
+`SnakeModel` module. The two lines following it are needed to
+disambiguate the import of the `SnakeModel.Position` type.
+
+By default, members of several of standard modules are imported by Elm
+programs. One of those modules is `Graphics.Element`, which defines a
+`Position` type. Without the disambiguation, that type would conflict
+with the `Position` imported from `SnakeModel`. That would result in a
+compilation error.
+
+      Error in definition drawPosition:
+      Ambiguous usage of type 'Position'.
+          Disambiguate between: Graphics.Element.Position, SnakeModel.Position
+
+To disambiguate, we create an alias (using the `type` keyword) for the
+`SnakeModel.Position` type. Such local type declaration takes
+precedence over the imported declarations.
 
 The snake and the food are drawn using filled squares. The actual
 size of the squares and the size of the board boundaries are
@@ -239,11 +261,11 @@ game is over.
 
       gameOver : Element
       gameOver =
-          toText "Game Over" |>
-          color red |>
-          bold |>
-          height 60 |>
-          centered |>
+          Text.toText "Game Over" |>
+          Text.color red |>
+          Text.bold |>
+          Text.height 60 |>
+          Text.centered |>
           container outerSize outerSize middle
 
 The `instructions` function shows the game instructions below the
@@ -382,7 +404,7 @@ returns its argument (`NewGame`) regardles of its input.
 
       newGameSignal : Signal Event
       newGameSignal =
-       always NewGame <~ (keepIf id False <| Keyboard.isDown (Char.toCode 'N'))
+       always NewGame <~ (keepIf identity False <| Keyboard.isDown (Char.toCode 'N'))
 
 The `eventSignal` function merges the signals produced by
 `tickSignal`, `directionSignal` and `newGameSignal`. Notice that all

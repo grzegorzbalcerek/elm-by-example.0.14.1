@@ -1,12 +1,12 @@
-import Text (..)
+import Text as T
 
 makeBlue : Text -> Text
-makeBlue = color blue
+makeBlue = T.color blue
 
 main : Element
-main = toText "Hello World" |>
+main = T.toText "Hello World" |>
        makeBlue |>
-       italic |>
-       bold |>
-       height 60 |>
-       leftAligned
+       T.italic |>
+       T.bold |>
+       T.height 60 |>
+       T.leftAligned

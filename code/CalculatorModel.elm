@@ -3,6 +3,7 @@ module CalculatorModel where
 import Char
 import Set
 import String
+import Maybe (maybe)
 
 data ButtonType = Regular | Large
 
@@ -23,7 +24,7 @@ isOper btn = Set.member btn (Set.fromList ["+","-","*","/","="])
 
 calculate : Float -> String -> String -> Float
 calculate number op input =
-  let number2 = maybe 0.0 id (String.toFloat input)
+  let number2 = maybe 0.0 identity (String.toFloat input)
   in if | op == "+" -> number + number2
         | op == "-" -> number - number2
         | op == "*" -> number * number2

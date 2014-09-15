@@ -126,13 +126,13 @@ considering the list of moves made so far.
               all (\{row}     -> row == 3)       fields ||
               all (\{col,row} -> col == row)     fields ||
               all (\{col,row} -> col + row == 4) fields
-        in not .
-           isEmpty .
-           filter fieldsAreInLine .
-           map (map fst) .
-           filter (all (\(_,p) -> p == player)) .
-           filter (\x -> length x == 3) .
-           subsequences
+        in subsequences >>
+           filter (\x -> length x == 3) >>
+           filter (all (\(_,p) -> p == player)) >>
+           map (map fst) >>
+           filter fieldsAreInLine >>
+           isEmpty >>
+           not
 
 The function has one argument (called `player`), yet the type
 declaration seems to declare two arguments. That means, that the
@@ -144,10 +144,10 @@ of fields has only fields that are on the same line (vertical,
 horizontal or diagonal).
 
 The function returned by `playerWon` is composed from several smaller
-functions using the dot operator, which composes two functions
-together. We will analyze the individual functions starting from the
-last one — `subsequences` — which returns all subsequences of the list
-of moves. The next function filters those subsequences, leaving only
+functions using the `>>`, which composes two functions together. We
+will analyze the individual functions starting from the first one —
+`subsequences` — which returns all subsequences of the list of
+moves. The next function filters those subsequences, leaving only
 those that have three elements. The next one filters them even more,
 leaving only those, which only have the moves of the player equal to
 the first argument of the `playerWon` function. The next one turns the
@@ -272,21 +272,21 @@ mouse click by the user.
 
       processClick : (Int,Int) -> GameState -> GameState
       processClick (x,y) =
-        let col = 1 + x `div` 100
-            row = 1 + y `div` 100
+        let col = 1 + x // 100
+            row = 1 + y // 100
         in
           if col >= 1 && col <= 3 && row >= 1 && row <= 3
           then makeHumanAndComputerMove {col=col,row=row}
-          else id
+          else identity
 
-The function uses the standard `id` function, which returns its input
+The function uses the standard `identity` function, which returns its input
 unchanged.
 
-      > id
+      > identity
       <function> : a -> a
-      > id 4
+      > identity 4
       4 : number
-      > id "abc"
+      > identity "abc"
       "abc" : String
 
 The coordinates of the click position are translated into the
