@@ -67,7 +67,5 @@ cd ..
 copy /y target\elm-runtime.js target\build
 copy /y code\* target\build
 copy /y code\WindowSignals2.html target\build\WindowSignals2.txt
-rem copy /y C:\Local\ElmPlatform\0.12.3\share\elm-runtime.js target\build
-rem copy /y C:\Local\elm-runtime.js target\build
 
 echo target\build\index.html

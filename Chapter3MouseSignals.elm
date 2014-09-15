@@ -178,9 +178,9 @@ moments of when the mouse button was released, while the last signal
 represents mouse positions from the moments of both when the mouse
 button was pressed and relesed.
 
-The `count` and `sampleOn` functions are defined in the
-[`Signal`](http://library.elm-lang.org/catalog/elm-lang-Elm/0.12.3/Signal)
-module. The module provides various functions for signal manipulations.
+The `count` and `sampleOn` functions are defined in the `Signal`
+module. The module provides various functions for signal
+manipulations.
 
 The [next](Chapter4WindowSignals.html) chapter presents signals
 defined in the `Window` module.

@@ -9,13 +9,11 @@ content = [markdown|
 
 # Chapter 4 Window Signals
 
-The
-[`Window`](http://library.elm-lang.org/catalog/elm-lang-Elm/0.12.3/Window)
-module from the standard library defines signals which provide
-information about the dimensions of the container in which the Elm
-program lives. The container may be the whole browser window, but does
-not have to be — it may be a `div` element where an Elm program is
-embeded on an HTML page.
+The `Window` module from the standard library defines signals which
+provide information about the dimensions of the container in which the
+Elm program lives. The container may be the whole browser window, but
+does not have to be — it may be a `div` element where an Elm program
+is embeded on an HTML page.
 
 Our first example is a standalone program, and thus the signals
 represent the dimensions of the browser window. The
