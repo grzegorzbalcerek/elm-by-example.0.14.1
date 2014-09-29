@@ -184,8 +184,8 @@ The revised game has its own `main` function defined in the
       main = view <~ stateSignal
 
 You can see that program in action [here](Snake2.html). From the user
-point of view it is analogous to the the [*Snake.elm*](Snake.html)
-program defined in [Chapter 11](Chapter11Snake.html).
+point of view it is analogous to the [*Snake.elm*](Snake.html)
+program presented in [Chapter 11](Chapter11Snake.html).
 
 The `foldpm`, `when` and `compose` functions are more general and not
 specific to the snake program. They are defined in a separate module
