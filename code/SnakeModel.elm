@@ -17,7 +17,7 @@ data Event = Tick Position | Direction Delta | NewGame | Ignore
 
 boardSize = 15
 boxSize = boardSize + boardSize + 1
-velocity = 50
+velocity = 5
 
 nextPosition : Snake -> Delta -> Position
 nextPosition snake {dx,dy} =
@@ -48,23 +48,3 @@ collision state =
      then True
      else False
 
-step : Event -> SnakeState -> SnakeState
-step event state =
-    case (event,state.gameOver) of
-      (NewGame,_) -> initialState
-      (_,True) -> state
-      (Direction newDelta,_) -> { state | delta <- if abs newDelta.dx /= abs state.delta.dx
-                                                   then newDelta
-                                                   else state.delta }
-      (Tick newFood, _) -> { state
-                           | ticks <- state.ticks + 1
-                           , snake <- if state.ticks % velocity == 0
-                                      then moveSnakeForward state.snake state.delta state.food
-                                      else state.snake
-                           , gameOver <- if state.ticks % velocity == 0 then collision state else False
-                           , food <- maybe
-                                     (if isInSnake state.snake newFood then Nothing else Just newFood)
-                                     (\f -> if state.ticks % velocity == 0 && head state.snake.front == f then Nothing else state.food)
-                                     state.food
-                           }
-      (Ignore,_) -> state

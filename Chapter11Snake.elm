@@ -3,7 +3,7 @@
 import Lib (..)
 import Window
 
-content w = pageTemplate [content1,container w 820 middle picture1,content2]
+content w = pageTemplate [content1,container w 620 middle picture1,content2]
             "Chapter10KeyboardSignals" "toc" "Chapter12TicTacToe" w
 main = lift content Window.width
 
@@ -20,10 +20,12 @@ ends, when the snake collides with itself or a wall. Before
 continuing, try the game [here](Snake.html), to have an idea of how it
 works.
 
-The code is divided into three modules:
+The code is divided into several modules:
 
  * `SnakeModel`
  * `SnakeView`
+ * `SnakeSignal`
+ * `SnakeState`
  * `Snake`
 
 We start our analysis with the `SnakeModel` module defined in the
@@ -33,6 +35,7 @@ usual module declaration and imports.
       module SnakeModel where
 
       import Set
+      import Maybe (maybe)
 
 Then it defines the following data types:
 
@@ -43,7 +46,7 @@ Then it defines the following data types:
 
 The `SnakeState` represents the state of the game. The `snake` member,
 of type `Snake`, contains the snake positions (the `Position` type) on
-the board, stored in two lists (it will be explainde below why it is
+the board, stored in two lists (it will be explained below why it is
 convenient to store it that way). The `delta` member, of type `Delta`,
 stores the current direction of the snake. At any given point in time,
 one of its members: `dx` or `dy` is set to `1` or `-1`, and the other
@@ -143,56 +146,6 @@ the board.
            then True
            else False
 
-The `step` function is the main function producing the next game state
-based on the event received and the current state. It uses the
-auxiliary functions described above.
-
-      step : Event -> SnakeState -> SnakeState
-      step event state =
-          case (event,state.gameOver) of
-            (NewGame,_) -> initialState
-            (_,True) -> state
-            (Direction newDelta,_) -> { state | delta <- if abs newDelta.dx /= abs state.delta.dx
-                                                         then newDelta
-                                                         else state.delta }
-            (Tick newFood, _) -> { state
-                                 | ticks <- state.ticks + 1
-                                 , snake <- if state.ticks % velocity == 0
-                                            then moveSnakeForward state.snake state.delta state.food
-                                            else state.snake
-                                 , gameOver <- if state.ticks % velocity == 0 then collision state else False
-                                 , food <- maybe
-                                           (if isInSnake state.snake newFood then Nothing else Just newFood)
-                                           (\f -> if state.ticks % velocity == 0 && head state.snake.front == f then Nothing else state.food)
-                                           state.food
-                                 }
-            (Ignore,_) -> state
-
-The function verifies certain conditions and reacts to the first one
-that is true. It first verifies whether the event received is `NewGame`,
-in which case the function returns the initial state, regardless of
-what is the current state.
-
-If the `gameOver` member of the current state is true, then the state
-is returned unchanged.
-
-When a `Direction` event is received, the `delta` member is updated, but
-only if the new direction does not cause the snake to turn back (what
-would cause an immediate collision).
-
-When the `Tick` event is received, several changes to the state are
-performed. The `ticks` counter is incremented. If the `ticks` modulo
-the velocity is equal to zero, the snake is moved using the
-`moveSnakeForward` function, and the `collision` function verifies
-whether the collision can be detected, storing the result into
-`gameOver`. The `Tick` event contains the potential new position of
-the food. If there is currently no food on the board, the function
-verifies whether the new food position conflicts (is equal to) with
-one of the snake’s positions, and stores it in `food` if there was no
-conflict. If there is food on the board, the function verifies if its
-position is equal to the next snake position, in which case it removes
-it from the board.
-
 The `SnakeView` module, defined in the
 *[SnakeView.elm](SnakeView.elm)* file, contains functions responsible
 for drawing the game. It begins with the module declaration and a
@@ -210,10 +163,10 @@ The `import SnakeModel (..)` line imports the members of the
 `SnakeModel` module. The two lines following it are needed to
 disambiguate the import of the `SnakeModel.Position` type.
 
-By default, members of several of standard modules are imported by Elm
+By default, members of several standard modules are imported by Elm
 programs. One of those modules is `Graphics.Element`, which defines a
 `Position` type. Without the disambiguation, that type would conflict
-with the `Position` imported from `SnakeModel`. That would result in a
+with the `Position` type imported from `SnakeModel`. That would result in a
 compilation error.
 
       Error in definition drawPosition:
@@ -299,19 +252,12 @@ state.
 
 You can verify what it shows [here](SnakeView.html).
 
-The `Snake` module implements the remainder of the game.
-
-      module Snake where
-
-      import SnakeModel (..)
-      import SnakeView (..)
-      import Keyboard
-      import Random
-      import Char
-
-The module creates several signals and combines them together. The
+The `SnakeSignals` module creates several of the game signals. The
 following figure presents how the individual signals are combined
-together to produce the main game signal.
+together to produce the main game signal. The `SnakeSignals` module
+defined the functions showed on the figure, except for the
+`stateSignal` and `main` functions, which are defined in different
+modules.
 
 |]
 
@@ -367,7 +313,7 @@ second.
 
 The `xSignal` and `ySignal` functions use the `Random.range` function
 together with the `timeSignal` to produce a signal of random `Int`
-values from the range of `-boardSize` to `-boardSize`.
+values from the range of `-boardSize` to `boardSize`.
 
       xSignal : Signal Int
       xSignal = Random.range -boardSize boardSize timeSignal
@@ -413,30 +359,123 @@ the input signals have the same signature.
       eventSignal : Signal Event
       eventSignal = merges [tickSignal, directionSignal, newGameSignal]
 
+The `stateSignal` function is defined in the `StateState` module. The
+module obviously starts with the module declaration and imports.
+
+      module SnakeState where
+
+      import SnakeModel (..)
+      import SnakeSignals (..)
+
 The `stateSignal` function uses the `foldp` function and produces a
-signal of `SnakeState`. It takes three arguments. The first one is the
-`step` function from the `SnakeModel` module — it is a function that
-takes two arguments (the current event and the current state) and
-produces the new state. The second argument is the initial state,
-returned by the `initialState` function. The third one is the signal
-of input events (returned by `eventSignal`).
+signal of `SnakeState`.
 
       stateSignal : Signal SnakeState
       stateSignal = foldp step initialState eventSignal
 
-The `stateSignal` is used in the `main` function:
+The `foldp` function takes three arguments. The first one is the
+`step` function — it is a function that takes two arguments (the
+current event and the current state) and produces the new state. The
+second argument is the initial state, returned by the `initialState`
+function. The third one is the signal of input events (returned by
+`eventSignal`).
+
+The `step` function is producing the next game state based on the
+event received and the current state.
+
+      step : Event -> SnakeState -> SnakeState
+      step event state =
+          case (event,state.gameOver) of
+            (NewGame,_) -> initialState
+            (_,True) -> state
+            (Direction newDelta,_) ->
+              { state | delta <- if abs newDelta.dx /= abs state.delta.dx
+                                 then newDelta
+                                 else state.delta }
+            (Tick newFood, _) ->
+              let state1 = if state.ticks % velocity == 0
+                           then { state | gameOver <- collision state }
+                           else state
+              in if state1.gameOver
+                 then state1
+                 else let state2 = { state1
+                                   | snake <-
+                                       if state1.ticks % velocity == 0
+                                       then moveSnakeForward state1.snake state1.delta state1.food
+                                       else state1.snake
+                                   }
+                          state3 = { state2
+                                   | food <-
+                                       case state2.food of
+                                         Just f -> 
+                                           if state2.ticks % velocity == 0 && head state2.snake.front == f
+                                           then Nothing
+                                           else state2.food
+                                         Nothing ->
+                                           if isInSnake state2.snake newFood
+                                           then Nothing
+                                           else Just newFood
+                                   }
+                      in { state3 | ticks <- state3.ticks + 1 }
+            (Ignore,_) -> state
+
+The function verifies certain conditions and reacts to the first one
+that is true. It first verifies whether the event received is `NewGame`,
+in which case the function returns the initial state, regardless of
+what is the current state.
+
+If the `gameOver` member of the current state is true, then the state
+is returned unchanged.
+
+When a `Direction` event is received, the `delta` member is updated, but
+only if the new direction does not cause the snake to turn back (what
+would cause an immediate collision).
+
+When the `Tick` event is received, several changes to the state are
+performed. The changes are performed one by one, producing
+intermediate states (`state1`, `state2`, `state3`). First, the
+`collision` function verifies whether a collision can be detected, in
+which case the game is over. The result is stored in the `gameOver`
+member of `state1`. If the game is over, `state1` is returned and
+no further state updates are needed. Otherwise, the snake moves
+forward but only if the `ticks` modulo the velocity is equal to
+zero.
+
+The next step is to update the `food` member. If there is food on the
+board, the snake has just moved, and its head’s position is equal to
+the position of the food, it means the snake has just eaten the food,
+in which case we set the `food` member to `Nothing`. If there is no
+food on the board (which happens after it has been eaten or at the
+beginning of the game), we verify whether the `newFood` can safely be
+put on the board, that is whether its position is not equal to the
+position of any segment of the snake. If it is safe, we update
+`food` to have the new food postion (wrapped in `Just`).
+
+Finally the `ticks` member is incremented and the new state returned.
+
+The `Ignore` event is ignored, that is it does not cause any state
+change.
+
+The `Snake` module implements the `main` function.
+
+      module Snake where
+
+      import SnakeState (..)
+      import SnakeView (..)
 
       main : Signal Element
-      main = view <~ mainSignal
+      main = view <~ stateSignal
 
 The `main` function returns a `Signal Element` signal which is
 interpreted by Elm’s runtime, rendering the application.
 
 In order to transform the game state, we have used a monolitic `step`
 function, that reacts to each possible combination of input event and
-current state. That approach works, but it has the disadvantage that
+current state. The solution works, but it has the disadvantage that
 the function which transforms the state may become big and difficult
-to maintain for larger programs. The [next](Chapter12TicTacToe.html)
-chapter presents a program which uses a different approach.
+to maintain for larger programs. We will explore alternatives to that
+approach in the subsequent chapters. The
+[next](Chapter12TicTacToe.html) chapter presents a program which uses
+an alternative approach.
 
 |]

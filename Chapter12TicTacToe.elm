@@ -6,7 +6,7 @@ import Window
 content w = pageTemplate [ content1
                          , container w 510 middle picture1
                          , content2
-                         ] "Chapter11Snake" "toc" "" w
+                         ] "Chapter11Snake" "toc" "Chapter13SnakeRevisited" w
 main = lift content Window.width
 
 content1 = [markdown|

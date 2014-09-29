@@ -61,6 +61,8 @@ elm %RUNTIME% -m Snake.elm
 elm %RUNTIME% -m SnakeView.elm
 elm %RUNTIME% -m Chapter12TicTacToe.elm
 elm %RUNTIME% -m TicTacToe.elm
+elm %RUNTIME% -m Chapter13SnakeRevisited.elm
+elm %RUNTIME% -m Snake2.elm
 
 cd ..
 
