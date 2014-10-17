@@ -87,11 +87,11 @@ program into the `div` element. Note, that the script needs to be
 placed after the `div` element in the page source.
 
 The `script` element contains two statements. The first one finds the
-`div` element and stores it in the `container` variable. The second
+`<div>` element and stores it in the `div` variable. The second
 statement actually embeds the Elm program. The `Elm.embed` function is
 called with two arguments. The first one is `Elm.WindowSignals1`. The
 `WindowSignals1` is the name of the module defined in the
-*WindowSignals1.elm* source file. The second argument is our container
+*WindowSignals1.elm* source file. The second argument is our `div`
 element.
 
 You can open the HTML page [here](WindowSignals2.html) and notice that
