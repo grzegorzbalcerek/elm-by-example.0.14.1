@@ -3,12 +3,12 @@
 import Lib (..)
 import Window
 
-content w = pageTemplate [content1,container w 200 middle picture1,content2,container w 100 middle picture2,content3] "Chapter8Circles" "toc" "Chapter10KeyboardSignals" w
+content w = pageTemplate [content1,container w 200 middle picture1,content2,container w 100 middle picture2,content3] "Chapter9Circles" "toc" "Chapter11KeyboardSignals" w
 main = lift content Window.width
 
 content1 = [markdown|
 
-# Chapter 9 Calculator
+# Chapter 10 Calculator
 
 The *[Calculator.elm](Calculator.elm)* program implements a simple
 calculator that can be used to perform arithmetic operations. You can
@@ -551,7 +551,7 @@ Finally, the `main` function combines the `stateSignal` and
 `CalculatorView` module.
 
 So far, we have only used the mouse to interact with our programs. In
-the [next](Chapter10KeyboardSignals.html) chapter we will learn how to
+the [next](Chapter11KeyboardSignals.html) chapter we will learn how to
 use keyboard releated signals.
 
 |]

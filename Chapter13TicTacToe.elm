@@ -6,12 +6,12 @@ import Window
 content w = pageTemplate [ content1
                          , container w 510 middle picture1
                          , content2
-                         ] "Chapter11Snake" "toc" "Chapter13SnakeRevisited" w
+                         ] "Chapter12Paddle" "toc" "Chapter14Snake" w
 main = lift content Window.width
 
 content1 = [markdown|
 
-# Chapter 12 Tic Tac Toe
+# Chapter 13 Tic Tac Toe
 
 This chapter presents a program implementing the Tic Tac Toe game. You
 can play it [here](TicTacToe.html) using your mouse to select the
@@ -515,5 +515,7 @@ the `view` function from the `TicTacToeView` module.
 
       main : Signal Element
       main = lift view gameStateSignal
+
+The [next](Chapter14Snake.html) chapter presents another game.
 
 |]

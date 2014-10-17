@@ -3,11 +3,11 @@
 import Lib (..)
 import Window
 
-main = lift (pageTemplate [content] "Chapter9Calculator" "toc" "Chapter11Snake") Window.width
+main = lift (pageTemplate [content] "Chapter10Calculator" "toc" "Chapter12Paddle") Window.width
 
 content = [markdown|
 
-# Chapter 10 Keyboard Signals
+# Chapter 11 Keyboard Signals
 
 The `Keyboard` module defines functions for dealing with keyboard
 input. Elm defines the `KeyCode` type as an alias for `Int` and
@@ -83,7 +83,7 @@ pressing the *Q*, *A*, *O* and *P* keys in various combinations:
 There are also two helper functions defined in terms of `directions`:
 `wasd` and `arrows`.
 
-The [next](Chapter11Snake.html) chapter presents a game which uses
+The [next](Chapter12Paddle.html) chapter presents a game which uses
 keyboard as input.
 
 |]

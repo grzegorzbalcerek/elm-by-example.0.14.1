@@ -1,6 +1,6 @@
-module Snake2 where
+module SnakeRevisited where
 
-import SnakeState2 (..)
+import SnakeStateRevisited (..)
 import SnakeView (..)
 
 main : Signal Element

@@ -207,13 +207,13 @@ the expression after the `then` keyword. Otherwise, it is the result
 of evaluating the expression after the `else` keyword. In our case,
 when `n` is less then or equal to `2`, the `fibonacci'` function
 returns the value of the accumulator `acc`. Otherwise, it calls itself
-with the new values of `n` and `acc`. The new `n` is equal to the old
-`n` decremeted by 1. The new accumulator is prepended with a new
-number, which is the sum of the first two numbers from the current
-accumulator value.
+with the new values of `n` and `acc`, which are calculated using
+another, nested `let` expression.
 
-The `head` function returns the first element of a list. The `tail`
-function returns a list without its first element.
+The nexted `let` expression defines the `cadr` function, which returns
+the second element of the list. The `head` function returns the first
+element of a list. The `tail` function returns a list without its
+first element.
 
       > head [1,2,3,4]
       1 : number
@@ -233,11 +233,19 @@ of arguments.
       > (tail >> head) [1,2,3,4]
       2 : number
 
-The `::` operator yields a new list with its left operand (an element)
-prepended to its right operand (a list).
+The next fibonacci number is calculated as the sum of the first and
+the second element of the current list of resuts (the accumulator
+`acc`) and is stored as the value `next`.
+
+The new `n` value for the recursive call to `fibonacci'` is equal to
+the old `n` decremeted by 1. The new accumulator is calculated by
+prepending its current value with the next value. The `::` operator
+yields a new list with its left operand (an element) prepended to its
+right operand (a list).
 
       > 7 :: [1,2,3,4]
       [7,1,2,3,4] : [number]
+
 
 The result of calling the `fibonacci'` function is reversed using the
 `reverse` function, since `fibonacci'` returns the list of numbers in

@@ -4,14 +4,13 @@ import Lib (..)
 import Window
 
 content w = pageTemplate [content1,container w 620 middle picture1,content2]
-            "Chapter10KeyboardSignals" "toc" "Chapter12TicTacToe" w
+            "Chapter13TicTacToe" "toc" "Chapter15SnakeRevisited" w
 main = lift content Window.width
 
 content1 = [markdown|
 
-# Chapter 11 Snake
+# Chapter 14 Snake
 
-Now that we know keyboard signals, we will use them to create a game.
 The *[Snake.elm](Snake.elm)* program is a game, in which the player
 uses the keyboard arrows to choose the direction that the snake goes
 to. The snake should eat food represented as green rectangles. When
@@ -473,9 +472,8 @@ In order to transform the game state, we have used a monolitic `step`
 function, that reacts to each possible combination of input event and
 current state. The solution works, but it has the disadvantage that
 the function which transforms the state may become big and difficult
-to maintain for larger programs. We will explore alternatives to that
-approach in the subsequent chapters. The
-[next](Chapter12TicTacToe.html) chapter presents a program which uses
-an alternative approach.
+to maintain for larger programs. The
+[next](Chapter15SnakeRevisited.html) chapter presents an alternative
+solution for implementing the same game.
 
 |]

@@ -4,12 +4,12 @@ import Lib (..)
 import Window
 
 content w = pageTemplate [text1,container w 820 middle picture1,text2]
-            "Chapter7RandomSignals" "toc" "Chapter9Calculator" w
+            "Chapter8RandomSignals" "toc" "Chapter10Calculator" w
 main = lift content Window.width
 
 text1 = [markdown|
 
-# Chapter 8 Circles
+# Chapter 9 Circles
 
 The next example, *[Circles.elm](Circles.elm)*, is a program which
 maintains state. Initially, the program only shows an empty
@@ -480,7 +480,7 @@ program signal, that is rendered by Elm’s runtime.
 
 
 So far we have used signals from the `Mouse` module to get mouse
-related input. The [next](Chapter9Calculator.html) chapter presents an
+related input. The [next](Chapter10Calculator.html) chapter presents an
 alternative way of processing mouse events.
 
 |]

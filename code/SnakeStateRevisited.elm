@@ -1,4 +1,4 @@
-module SnakeState2 where
+module SnakeStateRevisited where
 
 import SnakeModel (..)
 import SnakeSignals (..)

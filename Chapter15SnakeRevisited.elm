@@ -4,23 +4,24 @@ import Lib (..)
 import Window
 
 content w = pageTemplate [content1]
-            "Chapter12TicTacToe" "toc" "" w
+            "Chapter14Snake" "toc" "" w
 main = lift content Window.width
 
 content1 = [markdown|
 
-# Chapter 13 Snake Revisited
+# Chapter 15 Snake Revisited
 
-Chapter 11 presented a program which implemented the game of snake. That
-program used a monolitic `step` function, that reacted to each
-possible combination of input event and current state. The program
-presented in this chapter — *[Snake2.elm](Snake2.elm)* — is a revised
-version of that program, in which the state-modifying function is
-composed from several smaller functions.
+The previous chapter presented a program which implemented the game of
+snake. That program used a monolitic `step` function, that reacted to
+each possible combination of input event and current state. The
+program presented in this chapter —
+*[SnakeRevisited.elm](SnakeRevisited.elm)* — is a revised version of
+that program, in which the state-modifying function is composed from
+several smaller functions.
 
 The `SnakeModel`, `SnakeView` and `SnakeSignal` modules are reused and
 the `SnakeState` and `Snake` modules are replaced by new modules:
-`SnakeState2` and `Snake2`. Additionally, a new auxiliary module
+`SnakeStateRevisited` and `SnakeRevisited`. Additionally, a new auxiliary module
 called `Foldpm` is used as well.
 
 Our goal is to replace the previously used monolithic `step` by a set
@@ -170,20 +171,20 @@ that result is simply unwrapped. If the result is `Nothing`, the
 
 The `handleNewGame`, `handleGameOver`, `handleDirection`,
 `handleTick`, `step` and `stateSignal` functions are defined in the
-[`SnakeState2`](SnakeState2.elm) module.
+[`SnakeStateRevisited`](SnakeStateRevisited.elm) module.
 
 The revised game has its own `main` function defined in the
-[`Snake2`](Snake2.elm) module:
+[`SnakeRevisited`](SnakeRevisited.elm) module:
 
-      module Snake2 where
+      module SnakeRevisited where
 
-      import SnakeState2 (..)
+      import SnakeStateRevisited (..)
       import SnakeView (..)
 
       main : Signal Element
       main = view <~ stateSignal
 
-You can see that program in action [here](Snake2.html). From the user
+You can see that program in action [here](SnakeRevisited.html). From the user
 point of view it is analogous to the [*Snake.elm*](Snake.html)
 program presented in [Chapter 11](Chapter11Snake.html).
 

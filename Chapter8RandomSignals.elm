@@ -3,11 +3,11 @@
 import Lib (..)
 import Window
 
-main = lift (pageTemplate [content] "Chapter6TimeSignals" "toc" "Chapter8Circles") Window.width
+main = lift (pageTemplate [content] "Chapter7DelayedCircles" "toc" "Chapter9Circles") Window.width
 
 content = [markdown|
 
-# Chpater 7 Random Signals
+# Chpater 8 Random Signals
 
 The `Random` module defines functions producing signals carrying
 random numbers.
@@ -47,7 +47,7 @@ mouse.
       main = asText  <~ Random.floatList lengthSignal
 
 Our programs so far did not have any state. Yet state is
-important. The [next](Chapter8Circles.html) chapter shows how to deal
+important. The [next](Chapter9Circles.html) chapter shows how to deal
 with state in Elm programs.
 
 |]
