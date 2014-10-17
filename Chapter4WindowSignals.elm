@@ -48,13 +48,13 @@ embedded. Here is the page source:
       <html>
         <head>
           <script src="elm-runtime.js"></script>
-          <script src="build/WindowSignals1.js"></script>
+          <script src="WindowSignals1.js"></script>
         </head>
         <body>
           <div id="container" style="border: black solid 1px"></div>
           <script>
-            var container = document.getElementById('container')
-            Elm.embed(Elm.WindowSignals1, container)
+            var div = document.getElementById('container')
+            Elm.embed(Elm.WindowSignals1, div)
           </script>
         <body>
       </html>
@@ -68,7 +68,7 @@ of compiling the *WindowSignals1.elm* program. If you cannot find the
 verify, in the HTML page produced by the compiler, where the runtime
 file is included from.
 
-The next line includes the *build/WindowSignals1.js* file. The
+The next line includes the *WindowSignals1.js* file. The
 following command can be used to produce that file:
 
       elm --only-js WindowSignals1.elm
