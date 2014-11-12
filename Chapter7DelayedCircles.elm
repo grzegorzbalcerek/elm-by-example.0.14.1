@@ -21,30 +21,40 @@ continuing, take a look at the working program
 The `DrawCircles` module defines the `drawCircles` function, which
 draws the circles given a list of their radiuses.
 
+% DrawCircles.elm
       module DrawCircles where
+
 
       import Array as A
 
+
       color : Int -> Color
       color n =
-        let colors = A.fromList
-              [green,red,blue,yellow,brown,purple,orange]
-        in A.getOrElse black (n % (A.length colors)) colors
+          let colors =
+                  A.fromList [ green, red, blue, yellow, brown, purple, orange ]
+          in
+              A.getOrElse black (n % (A.length colors)) colors
 
-      circleForm : (Int,(Int,Int)) -> Form
-      circleForm (r,(x,y)) = circle (toFloat r*5) |>
-                             filled (color r) |>
-                             move (toFloat x,toFloat y)
 
-      drawCircles : [(Int,(Int,Int))] -> (Int,Int) -> Element
-      drawCircles d (w,h) = collage w h <| map circleForm d
+      circleForm : (Int, (Int, Int)) -> Form
+      circleForm (r, (x, y)) =
+          circle (toFloat r*5)
+              |> filled (color r)
+              |> move (toFloat x,toFloat y)
 
-      main = drawCircles [(3,(-200,0))
-                         ,(4,(-100,0))
-                         ,(5,(0,0))
-                         ,(7,(100,0))
-                         ,(9,(200,0))
-                         ] (600,400)
+
+      drawCircles : [(Int, (Int, Int))] -> (Int, Int) -> Element
+      drawCircles d (w, h) = collage w h <| map circleForm d
+
+      main =
+          drawCircles [
+                  (3, (-200, 0)),
+                  (4, (-100, 0)),
+                  (5, (0, 0)),
+                  (7, (100, 0)),
+                  (9, (200, 0))
+              ]
+              (600, 400)
 
 The `color` function takes a number and returns one of the colors from
 a predefined list. The argument modulo the length of the list gives
@@ -76,25 +86,31 @@ indicating how much time the of mouse position coordinates should be
 delayed (the units used are tenths of seconds). The second element of
 each pair is the delayed mouse position.
 
+% DelayedMousePositions.elm
       module DelayedMousePositions where
+
 
       import Mouse
       import Window
 
-      delayedMousePositions : [Int] -> Signal [(Int,(Int,Int))]
+
+      delayedMousePositions : [Int] -> Signal [(Int, (Int, Int))]
       delayedMousePositions rs =
-        let adjust (w,h) (x,y) = (x-w//2,h//2-y)
-            n = length rs
-            position = adjust <~ Window.dimensions ~ Mouse.position
-            positions = repeat n position -- [Signal (Int,Int)]
-            delayedPositions =            -- [Signal (Int,(Int,Int))]
-                 zipWith
-                 (\r pos ->
-                    let delayedPosition = delay (toFloat r*100) pos
-                    in lift (\pos -> (r,pos)) delayedPosition)
-                 rs
-                 positions
-        in combine delayedPositions
+          let adjust (w, h) (x, y) = (x-w//2,h//2-y)
+              n = length rs
+              position = adjust <~ Window.dimensions ~ Mouse.position
+              positions = repeat n position -- [Signal (Int, Int)]
+              delayedPositions =            -- [Signal (Int, (Int, Int))]
+                  zipWith
+                  (\r pos ->
+                      let delayedPosition = delay (toFloat r*100) pos
+                      in
+                          lift (\pos -> (r,pos)) delayedPosition)
+                  rs
+                  positions
+          in
+              combine delayedPositions
+
 
       main = asText <~ delayedMousePositions [0,10,25]
 
@@ -171,13 +187,17 @@ The [*DelayedCircles.elm*](DelayedCircles.html) program combines the
 is a series of circles, each of which follow the mouse pointer, but
 with a time lag proportional to the size of the circle.
 
+% DelayedCircles.elm
       import Window
       import Fibonacci (fibonacci)
       import DrawCircles (drawCircles)
       import DelayedMousePositions (delayedMousePositions)
 
-      main = drawCircles <~ delayedMousePositions (fibonacci 8 |> tail |> reverse)
-                          ~ Window.dimensions 
+
+      main =
+          drawCircles
+              <~ delayedMousePositions (fibonacci 8 |> tail |> reverse)
+              ~ Window.dimensions
 
 The sizes of the circles are calculated by the `fibonacci` function
 from the `Fibonacci` module described in [Chapter
