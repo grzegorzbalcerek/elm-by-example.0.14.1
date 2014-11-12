@@ -20,8 +20,11 @@ argument. Observe [here](RandomSignals1.html) the values produced for
 each mouse click by the *[RandomSignals1.elm](RandomSignals1.elm)*
 program, presented below.
 
+% RandomSignals1.elm
       import Random
       import Mouse
+
+
       main = asText <~ Random.float Mouse.clicks
 
 The `range` function creates a signal of integer numbers from within a
@@ -29,8 +32,11 @@ range specifed by the first two arguments. Observe
 [here](RandomSignals2.html) the values produced for each mouse click
 by the *[RandomSignals2.elm](RandomSignals2.elm)* program.
 
+% RandomSignals2.elm
       import Random
       import Mouse
+
+
       main = asText <~ Random.range 10 20 Mouse.clicks
 
 The `floatList` function creates a signal of lists of floating point
@@ -41,9 +47,14 @@ signal. Observe [here](RandomSignals3.html) the values produced by the
 *[RandomSignals3.elm](RandomSignals3.elm)* program as you move your
 mouse.
 
+% RandomSignals3.elm
       import Random
       import Mouse
+
+
       lengthSignal = lift (\x -> 1 + x // 100) Mouse.x
+
+
       main = asText  <~ Random.floatList lengthSignal
 
 Our programs so far did not have any state. Yet state is
