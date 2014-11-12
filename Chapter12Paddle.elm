@@ -19,7 +19,9 @@ try the game [here](Paddle.html), to have an idea of how it works.
 
 The code starts with the `Paddle` module declaration and a list of imports.
 
+% Paddle.elm
       module Paddle where
+
 
       import Window
       import Text as T
@@ -29,50 +31,58 @@ After the imports, four functions which draw various elements of the
 game view are defined. The `borders` function draws the blue wall by
 drawing a blue square and a slightly smaller white rectangle on top of
 it.
+% Paddle.elm
 
       borders : Form
-      borders = group
-        [ rect 440 440 |> filled blue
-        , rect 400 420 |> filled white |> moveY -10
-        ]
+      borders =
+          group [
+              rect 440 440 |> filled blue,
+              rect 400 420 |> filled white |> moveY -10
+          ]
 
 The `paddle` function draws the green paddle, given its horizontal
 position passed as the parameter.
+% Paddle.elm
 
       paddle : Float -> Form
       paddle x =
-        rect (toFloat 100) (toFloat 20) |>
-        filled green |>
-        move (x,-210)
+          rect (toFloat 100) (toFloat 20)
+              |> filled green
+              |> move (x,-210)
 
 The `ball` function takes the coordinates of the ball as arguments and
 draws an orange circle.
+% Paddle.elm
 
       ball : Float -> Float -> Form
       ball x y = filled orange (circle 10) |> move (x,y)
 
 Finally the `gameOver` function draws the “Game Over” text presented
 to the user when the game is over.
+% Paddle.elm
 
       gameOver : Element
       gameOver =
-          T.toText "Game Over" |>
-          T.color red |>
-          T.bold |>
-          T.height 60 |>
-          T.centered |>
-          container 440 440 middle
+          T.toText "Game Over"
+               |> T.color red
+               |> T.bold
+               |> T.height 60
+               |> T.centered
+               |> container 440 440 middle
 
 The `State` type represents the state of the game.
+% Paddle.elm
 
-      type State = { x: Float
-                   , y: Float
-                   , dx: Float
-                   , dy: Float
-                   , paddlex: Float
-                   , paddledx: Float
-                   , isOver: Bool
-                   }
+      type State =
+          {
+              x: Float,
+              y: Float,
+              dx: Float,
+              dy: Float,
+              paddlex: Float,
+              paddledx: Float,
+              isOver: Bool
+          }
 
 The `x` and `y` members are the coordinates of the ball. The `dx` and
 `dy` members represent the horizontal and vertical velocity of the
@@ -82,35 +92,41 @@ not have to be part of the state). The `isOver` flag holds the
 information whether the game is over or not.
 
 The `initialState` function creates the initial state of the game.
+% Paddle.elm
 
       initialState : State
-      initialState = { x = 0
-                     , y = 0
-                     , dx = 0.14
-                     , dy = 0.2
-                     , paddlex = 0
-                     , paddledx = 0
-                     , isOver = False
-                     }
+      initialState =
+          {
+              x = 0,
+              y = 0,
+              dx = 0.14,
+              dy = 0.2,
+              paddlex = 0,
+              paddledx = 0,
+              isOver = False
+          }
 
 The `view` function takes the state value as argument and draws the
 game view using the functions described above.
+% Paddle.elm
 
       view : State -> Element
-      view s = layers [
-        collage 440 440
-        [ borders
-        , paddle s.paddlex
-        , ball s.x s.y
-        ]
-        , if s.isOver then gameOver else empty
-        ]
+      view s =
+          layers [
+              collage 440 440 [
+                  borders,
+                  paddle s.paddlex,
+                  ball s.x s.y
+              ],
+              if s.isOver then gameOver else empty
+          ]
 
 The state of the game will change in response to a time-based signal —
 for moving the ball — and to a keyboard-based signal — for moving the
 paddle. Both signals will be merged. In order to do that, we will need
 a data type representing events from both signals. The `Event` data
 type represents the events.
+% Paddle.elm
 
       data Event = Tick Time | PaddleDx Int
 
@@ -121,6 +137,7 @@ the new value of the horizontal paddle velocity.
 
 The `clockSignal` function creates a signal of ticks using the
 standard library `fps` function.
+% Paddle.elm
 
       clockSignal : Signal Event
       clockSignal = lift Tick <| fps 100
@@ -131,11 +148,13 @@ the values produced by the `Keyboard.arrows` signal are needed in our
 game. The numeric values carried by the `PaddleDx` events will only
 have one of three possible values coming from the `Keyboard.arrows`
 events: `-1`, `0`, or `1`.
+% Paddle.elm
 
       keyboardSignal : Signal Event
       keyboardSignal = lift (.x >> PaddleDx) Keyboard.arrows
 
 The `eventSignal` merges both signal into one combined signal.
+% Paddle.elm
 
       eventSignal : Signal Event
       eventSignal = merge clockSignal keyboardSignal
@@ -143,6 +162,7 @@ The `eventSignal` merges both signal into one combined signal.
 The `gameSignal` function creates a signal representing how the game
 state changes over time by folding (`foldp`) the `eventSignal`
 events using the `step` function.
+% Paddle.elm
 
       gameSignal : Signal State
       gameSignal = foldp step initialState <| eventSignal
@@ -156,30 +176,31 @@ function. The third one is the signal of input events (returned by
 
 The `step` function combines an event and the current game state to
 produce a new game state.
+% Paddle.elm
 
       step : Event -> State -> State
       step event s =
-        if s.isOver
-        then s
-        else case event of
-          Tick time ->
-             { s
-             | x <- s.x + s.dx*time
-             , y <- s.y + s.dy*time
-             , dx <- if (s.x >= 190 && s.dx > 0)  ||
-                        (s.x <= -190 && s.dx < 0)
-                     then -1*s.dx
-                     else s.dx
-             , dy <- if (s.y >= 190 && s.dy > 0) ||
-                        (s.y <= -190 && s.dy < 0 &&
-                         s.x >= s.paddlex - 50 &&
-                         s.x <= s.paddlex + 50)
-                     then -1*s.dy
-                     else s.dy
-             , paddlex <- ((s.paddlex + s.paddledx*time) `max` -150) `min` 150
-             , isOver <- s.y < -200
-             }
-          PaddleDx dx -> { s | paddledx <- 0.1 * toFloat dx }
+          if s.isOver
+              then s
+              else case event of
+                      Tick time ->
+                         { s |
+                             x <- s.x + s.dx*time,
+                             y <- s.y + s.dy*time,
+                             dx <- if (s.x >= 190 && s.dx > 0)  ||
+                                      (s.x <= -190 && s.dx < 0)
+                                       then -1*s.dx
+                                       else s.dx,
+                             dy <- if (s.y >= 190 && s.dy > 0) ||
+                                      (s.y <= -190 && s.dy < 0 &&
+                                       s.x >= s.paddlex - 50 &&
+                                       s.x <= s.paddlex + 50)
+                                       then -1*s.dy
+                                       else s.dy,
+                             paddlex <- ((s.paddlex + s.paddledx*time) `max` -150) `min` 150,
+                             isOver <- s.y < -200
+                         }
+                      PaddleDx dx -> { s | paddledx <- 0.1 * toFloat dx }
 
 The function first verifies whether the game is over already. If it
 is, the state is returned unchanged. Otherwise, the event is
@@ -208,6 +229,7 @@ horizontal paddle velocity `paddledx`.
 
 The `main` function lifts the `view` function into the `gameSignal`
 producing the final game signal that is rendered on the screen.
+% Paddle.elm
 
       main : Signal Element
       main = lift view gameSignal

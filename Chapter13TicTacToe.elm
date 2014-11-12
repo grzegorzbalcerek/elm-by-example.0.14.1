@@ -30,11 +30,25 @@ We start our analysis with the `TicTacToeModel` module defined in the
 *[TicTacToeModel.elm](TicTacToeModel.elm)* file. The module
 declaration is followed by several data type declarations.
 
+% TicTacToeModel.elm
+      module TicTacToeModel where
+
+
       data Player = O | X
+
+
       data Result = Draw | Winner Player
+
+
       type Field = { col: Int, row: Int }
+
+
       type Move = (Field,Player)
+
+
       type Moves = [Move]
+
+
       data GameState = FinishedGame Result Moves
                      | NotFinishedGame Player Moves
 
@@ -51,27 +65,33 @@ to make the next move, and a list of moves made so far.
 The data types are followed by definitions of several functions. The
 first one of them takes a player as argument and returns the “other”
 player.
+% TicTacToeModel.elm
 
       other : Player -> Player
-      other player = case player of
-        X -> O
-        O -> X
+      other player =
+          case player of
+              X -> O
+              O -> X
 
 The `moves` function extracts the list of moves from the game state.
+% TicTacToeModel.elm
 
       moves : GameState -> Moves
-      moves state = case state of
-        (NotFinishedGame _ moves) -> moves
-        (FinishedGame _ moves) -> moves
+      moves state =
+          case state of
+              (NotFinishedGame _ moves) -> moves
+              (FinishedGame _ moves) -> moves
 
 The `initialState` function returns the initial game state. We have assumed
 that the player `X` always starts.
+% TicTacToeModel.elm
 
       initialState : GameState
       initialState = NotFinishedGame X []
 
 The `isFieldEmpty` function verifies whether a given field is not yet
 occupied, given the list of moves made so far.
+% TicTacToeModel.elm
 
       isFieldEmpty : Moves -> Field -> Bool
       isFieldEmpty moves field = all (\move -> not (fst move == field)) moves
@@ -91,12 +111,15 @@ the `isFieldEmpty` function. Let’s test the function in the REPL.
 
 The `subsequences` function is a helper function that works on lists,
 but is not available in the standard library `List` module.
+% TicTacToeModel.elm
 
       subsequences : [a] -> [[a]]
-      subsequences lst = case lst of
-        []  -> [[]]
-        h::t -> let st = subsequences t
-                in st ++ map (\x -> h::x) st
+      subsequences lst =
+          case lst of
+              []  -> [[]]
+              h::t -> let st = subsequences t
+                      in
+                          st ++ map (\x -> h::x) st
 
 It returns all subsequences of a given list.
 
@@ -114,25 +137,26 @@ head `h` and tail `t` are used as patterns in the `case` expression.
 
 The `playerWon` function verifies whether the given player won,
 considering the list of moves made so far.
+% TicTacToeModel.elm
 
       playerWon : Player -> Moves -> Bool
       playerWon player =
-        let fieldsAreInLine fields =
-              all (\{col}     -> col == 1)       fields ||
-              all (\{col}     -> col == 2)       fields ||
-              all (\{col}     -> col == 3)       fields ||
-              all (\{row}     -> row == 1)       fields ||
-              all (\{row}     -> row == 2)       fields ||
-              all (\{row}     -> row == 3)       fields ||
-              all (\{col,row} -> col == row)     fields ||
-              all (\{col,row} -> col + row == 4) fields
-        in subsequences >>
-           filter (\x -> length x == 3) >>
-           filter (all (\(_,p) -> p == player)) >>
-           map (map fst) >>
-           filter fieldsAreInLine >>
-           isEmpty >>
-           not
+          let fieldsAreInLine fields =
+                  all (\{col} -> col == 1) fields ||
+                  all (\{col} -> col == 2) fields ||
+                  all (\{col} -> col == 3) fields ||
+                  all (\{row} -> row == 1) fields ||
+                  all (\{row} -> row == 2) fields ||
+                  all (\{row} -> row == 3) fields ||
+                  all (\{col,row} -> col == row) fields ||
+                  all (\{col,row} -> col + row == 4) fields
+          in  subsequences
+                  >> filter (\x -> length x == 3)
+                  >> filter (all (\(_,p) -> p == player))
+                  >> map (map fst)
+                  >> filter fieldsAreInLine
+                  >> isEmpty
+                  >> not
 
 The function has one argument (called `player`), yet the type
 declaration seems to declare two arguments. That means, that the
@@ -164,14 +188,16 @@ filtering is not empty.
 
 The `addMove` function takes a move and a state and returns a new game
 state.
+% TicTacToeModel.elm
 
       addMove : Move -> GameState -> GameState
       addMove move state =
-        let newMoves = move :: (moves state)
-            player = snd move
-        in if | playerWon player newMoves -> FinishedGame (Winner player) newMoves
-              | length newMoves == 9 -> FinishedGame Draw newMoves
-              | otherwise -> NotFinishedGame (other player) newMoves
+          let newMoves = move :: (moves state)
+              player = snd move
+          in
+              if  | playerWon player newMoves -> FinishedGame (Winner player) newMoves
+                  | length newMoves == 9 -> FinishedGame Draw newMoves
+                  | otherwise -> NotFinishedGame (other player) newMoves
 
 The function adds the move to the existing state and then verifies
 whether the new situation corresponds to a finished game, either
@@ -191,15 +217,27 @@ returned.
 
 The `makeComputerMove` function implements the algorithm used by the
 computer to choose the next move.
+% TicTacToeModel.elm
 
       makeComputerMove : GameState -> GameState
       makeComputerMove state = case state of
-        FinishedGame _ _ -> state
-        NotFinishedGame player moves ->
-          let fields = [{col=2,row=2},{col=1,row=1},{col=3,row=3},{col=1,row=3},{col=3,row=1},{col=1,row=2},{col=2,row=1},{col=2,row=3},{col=3,row=2}]
-              newField = head <| filter (isFieldEmpty moves) fields
-              newMoves = (newField,player)::moves
-        in addMove (newField,player) state
+          FinishedGame _ _ -> state
+          NotFinishedGame player moves ->
+              let fields = [
+                      {col=2,row=2},
+                      {col=1,row=1},
+                      {col=3,row=3},
+                      {col=1,row=3},
+                      {col=3,row=1},
+                      {col=1,row=2},
+                      {col=2,row=1},
+                      {col=2,row=3},
+                      {col=3,row=2}
+                  ]
+                  newField = head <| filter (isFieldEmpty moves) fields
+                  newMoves = (newField, player) :: moves
+              in
+                  addMove (newField, player) state
 
 The algorithm is very simple, and is not the optimal one. An optimal
 algorithm would not leave a chance for the human player to win. This
@@ -217,14 +255,16 @@ remaining moves is selected.
 
 The `makeHumanAndComputerMove` function takes a field selected by the
 player, and the current game state, and returns a new game state.
+% TicTacToeModel.elm
 
       makeHumanAndComputerMove : Field -> GameState -> GameState
-      makeHumanAndComputerMove field state = case state of
-        FinishedGame _ _ -> state
-        NotFinishedGame player moves -> 
-          if isFieldEmpty moves field
-          then addMove (field,player) state |> makeComputerMove
-          else state
+      makeHumanAndComputerMove field state =
+          case state of
+              FinishedGame _ _ -> state
+              NotFinishedGame player moves -> 
+                  if isFieldEmpty moves field
+                      then addMove (field,player) state |> makeComputerMove
+                      else state
 
 The function first verifies if the next move is allowed to be made on
 the provided field. The move is not allowed if the game is already
@@ -247,13 +287,15 @@ computer.
 
 The `undoMoves` function modifies the state to undo two moves — the
 last computer move and the user move preceding it.
+% TicTacToeModel.elm
 
       undoMoves : GameState -> GameState
-      undoMoves state = case state of
-        NotFinishedGame _ [] -> state
-        NotFinishedGame player moves ->
-          NotFinishedGame player (moves |> tail |> tail)
-        FinishedGame _ _ -> state
+      undoMoves state =
+          case state of
+              NotFinishedGame _ [] -> state
+              NotFinishedGame player moves ->
+                  NotFinishedGame player (moves |> tail |> tail)
+              FinishedGame _ _ -> state
 
 The moves are only removed if the game is not finished, and only if
 there are actually moves that can be removed (the list of moves is not
@@ -269,15 +311,16 @@ empty).
 
 The `processClick` function modifies the game state in reaction to a
 mouse click by the user.
+% TicTacToeModel.elm
 
       processClick : (Int,Int) -> GameState -> GameState
       processClick (x,y) =
-        let col = 1 + x // 100
-            row = 1 + y // 100
-        in
-          if col >= 1 && col <= 3 && row >= 1 && row <= 3
-          then makeHumanAndComputerMove {col=col,row=row}
-          else identity
+          let col = 1 + x // 100
+              row = 1 + y // 100
+          in
+              if col >= 1 && col <= 3 && row >= 1 && row <= 3
+                  then makeHumanAndComputerMove {col=col,row=row}
+                  else identity
 
 The function uses the standard `identity` function, which returns its input
 unchanged.
@@ -304,55 +347,79 @@ order to (not) modify the state.
 The [`TicTacToeView`](TicTacToeView.elm) module defines the drawing
 functions.
 
+% TicTacToeView.elm
       module TicTacToeView where
+
 
       import TicTacToeModel (..)
       import Graphics.Input (..)
 
 The `drawLines` function draws the two vertical and two horizontal
 lines of the game board.
+% TicTacToeView.elm
 
       drawLines : Element
-      drawLines = collage 300 300 [ filled black (rect 3 300) |> move (-50,0)
-                                  , filled black (rect 3 300) |> move (50,0)
-                                  , filled black (rect 300 3) |> move (0,-50)
-                                  , filled black (rect 300 3) |> move (0,50) ]
+      drawLines =
+          collage 300 300 [
+              filled black (rect 3 300) |> move (-50,0),
+              filled black (rect 3 300) |> move (50,0),
+              filled black (rect 300 3) |> move (0,-50),
+              filled black (rect 300 3) |> move (0,50)
+          ]
 
 The `drawMoves` function draws the moves of both players.
+% TicTacToeView.elm
 
       drawMoves : GameState -> Element
-      drawMoves state = let
-          moveSign player = group (case player of
-            X -> let xline = filled black (rect 5 64) in [ rotate (degrees 45) xline, rotate (degrees 135) xline ]
-            O -> [ filled black <| circle 30,  filled white <| circle 25 ])
-          playerMove ({col,row}, player) = moveSign player |> move (toFloat <| 100*col-200,toFloat <| -100*row+200)
-        in collage 300 300 (map playerMove <| moves state)
+      drawMoves state =
+          let moveSign player =
+                  group (case player of
+                            X ->
+                                let xline = filled black (rect 5 64)
+                                in  [ rotate (degrees 45) xline
+                                    , rotate (degrees 135) xline
+                                    ]
+                            O ->
+                                [ filled black <| circle 30
+                                , filled white <| circle 25
+                                ]
+                        )
+              playerMove ({col,row}, player) =
+                  moveSign player |> move (toFloat <| 100*col-200,toFloat <| -100*row+200)
+          in
+              collage 300 300 (map playerMove <| moves state)
 
 The `stateDescription` returns the text of the message that the user
 sees below the board.
+% TicTacToeView.elm
 
       stateDescription : GameState -> String
-      stateDescription state = case state of
-        FinishedGame Draw _ -> "Game Over. Draw"
-        FinishedGame (Winner p) _ -> "Game Over. Winner: " ++ show p
-        NotFinishedGame p _ -> "Next move: " ++ show p
+      stateDescription state =
+          case state of
+            FinishedGame Draw _ -> "Game Over. Draw"
+            FinishedGame (Winner p) _ -> "Game Over. Winner: " ++ show p
+            NotFinishedGame p _ -> "Next move: " ++ show p
 
 The `newGameInput` function creates an `Input` element related to the
 “New Game” button. The `newGameButton` uses that input’s `handle` and
 the `button` function from the `Graphics.Input` module, to create a
 clickable button. The signal associated with the input will output a
 `()` event each time the button is clicked.
+% TicTacToeView.elm
 
       newGameInput : Input ()
       newGameInput = input ()
+
 
       newGameButton : Element
       newGameButton = button newGameInput.handle () "New Game"
 
 There are also two similar functions related to the “Undo” button.
+% TicTacToeView.elm
 
       undoInput : Input ()
       undoInput = input ()
+
 
       undoButton : Element
       undoButton = button undoInput.handle () "Undo"
@@ -360,16 +427,21 @@ There are also two similar functions related to the “Undo” button.
 The `view` function collects the complete view, by drawing the board
 lines and the player moves on top of each other, and the state
 description message and the two buttons below.
+% TicTacToeView.elm
 
       view : GameState -> Element
-      view state = flow down [ layers [drawLines, drawMoves state]
-                             , container 300 60 middle <| plainText <| stateDescription state
-                             , container 300 60 middle <| flow right [undoButton, spacer 20 20, newGameButton]
-                             ]
+      view state =
+          flow down [
+              layers [drawLines, drawMoves state],
+              container 300 60 middle <| plainText <| stateDescription state,
+              container 300 60 middle <| flow right [undoButton, spacer 20 20, newGameButton]
+          ]
 
 The [`TicTacToe`](TicTacToe.elm) module implements the remainder of the game.
 
+% TicTacToe.elm
       module TicTacToe where
+
 
       import TicTacToeModel (..)
       import TicTacToeView (..)
@@ -426,15 +498,18 @@ signal which outputs the mouse pointer position on every click. The
 `newGameButtonSignal` function returns the signal associated with
 `newGameInput`. The `undoButtonSignal` function returns the signal
 associated with `undoInput`.
+% TicTacToe.elm
 
       clickSignal : Signal (Int,Int)
       clickSignal = sampleOn Mouse.clicks Mouse.position
 
-      newGameButtonSignal : Signal ()
-      newGameButtonSignal newGameInput.signal
 
-      newGameSignal : Signal (GameState -> GameState)
-      newGameSignal = always (always initialState) <~ newGameButtonSignal
+      newGameButtonSignal : Signal ()
+      newGameButtonSignal = newGameInput.signal
+
+
+      undoButtonSignal : Signal ()
+      undoButtonSignal = undoInput.signal
 
 The next three functions transform each of the above signals into a
 signal of state-transforming functions. Those signals have the type of
@@ -443,6 +518,7 @@ events will then be applied to the game state.
 
 The `newGameSignal` creates a signal of functions that return the
 initial game state regardless of the current state.
+% TicTacToe.elm
 
       newGameSignal : Signal (GameState -> GameState)
       newGameSignal = always (always initialState) <~ newGameButtonSignal
@@ -464,25 +540,29 @@ It is used twice. The outer `always` disregards the `()` values of the
 current state.
 
 The `undoSignal` function creates a signal of `undoMoves` functions.
+% TicTacToe.elm
 
       undoSignal : Signal (GameState -> GameState)
-      undoSignal = always undoMoves <~ undoInput.signal
+      undoSignal = always undoMoves <~ undoButtonSignal
 
 The `moveSignal` function returns a signal of state-transforming
 functions created by calling the `processClick` function with mouse
 click positions. The `processClick` function is partially applied
 here — only its first argument is applied.
+% TicTacToe.elm
 
       moveSignal : Signal (GameState -> GameState)
       moveSignal = processClick <~ clickSignal
 
 The `inputSignal` function merges the three signals described above
 into one.
+% TicTacToe.elm
 
       inputSignal : Signal (GameState -> GameState)
       inputSignal = merges [ moveSignal, newGameSignal, undoSignal ]
 
 The `gameStateSignal` uses the `foldp` function to modify the game state.
+% TicTacToe.elm
 
       gameStateSignal : Signal GameState
       gameStateSignal = foldp (<|) initialState inputSignal
@@ -512,6 +592,7 @@ them to the current state that it maintains and outputs.
 
 The `main` function simply combines the signal of state values with
 the `view` function from the `TicTacToeView` module.
+% TicTacToe.elm
 
       main : Signal Element
       main = lift view gameStateSignal
