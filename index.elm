@@ -14,7 +14,7 @@ import Graphics.Element
 import CalculatorView
 import CalculatorModel
 
-version = "Built on 2014-10-18 using Elm 0.13."
+version = "Built on 2014-11-12 using Elm 0.13."
 
 main = lift content Window.width
 

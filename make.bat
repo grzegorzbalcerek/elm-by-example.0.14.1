@@ -1,8 +1,5 @@
 @echo off
 
-rem ghc --make extractCode.hs
-rem ghc --make prepareChapterSource.hs
-
 set RUNTIME=--set-runtime=elm-runtime.js
 rem set RUNTIME=
 
