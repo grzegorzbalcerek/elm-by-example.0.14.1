@@ -10,9 +10,12 @@ rem rmdir /q/s target
 mkdir target
 mkdir target\Chess
 
+extractCode Chapter1HelloWorld.elm
+
 copy /y code\* target
-copy /y code\Chess\* target\Chess
 copy /y *.elm target
+
+prepareChapterSource Chapter1HelloWorld.elm
 
 cd target
 
@@ -79,7 +82,6 @@ cd ..
 
 copy /y target\elm-runtime.js target\build
 copy /y code\* target\build
-copy /y code\Chess\* target\build\Chess
 copy /y code\WindowSignals2.html target\build\WindowSignals2.txt
 
 echo target\build\index.html

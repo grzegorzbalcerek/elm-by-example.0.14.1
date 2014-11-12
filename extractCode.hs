@@ -29,7 +29,7 @@ process = fst . processLines . lines
 writeSources :: M.Map String [String] -> IO ()
 writeSources sources = 
   forM_ (M.toList sources) (\(fileName,sourceLines) ->
-    writeFile ("code/" ++ fileName) (unlines $ reverse sourceLines))
+    writeFile ("code/" ++ fileName) (unlines $ reverse $ dropWhile null sourceLines))
 
 main = do
   args <- getArgs

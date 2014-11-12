@@ -12,6 +12,7 @@ content = [markdown|
 The first example will display the “Hello World” message. The program
 — *[HelloWorld1.elm](HelloWorld1.elm)* — is presented below.
 
+% HelloWorld1.elm
       main = plainText "Hello World"
 
 The meaning of an Elm program is defined by the `main` function. Every
@@ -40,14 +41,18 @@ font. What if we want to use a different font? The *[HelloWorld2.elm](HelloWorld
 program, presented below, shows one way styling the message in a
 custom way. You can see it in action [here](HelloWorld2.html).
 
+% HelloWorld2.elm
       import Text
+
+
       main : Element
-      main = Text.toText "Hello World" |>
-             Text.color blue |>
-             Text.italic |>
-             Text.bold |>
-             Text.height 60 |>
-             Text.leftAligned
+      main =
+          Text.toText "Hello World"
+          |> Text.color blue
+          |> Text.italic
+          |> Text.bold
+          |> Text.height 60
+          |> Text.leftAligned
 
 In order to style to our message, we use functions from the `Text`
 module from Elm’s standard library. The first line: `import Text`
@@ -95,7 +100,7 @@ the function name and add the `|>` operator, like so:
 
       a |> f
 
-For greater readability, we have also added new line characters after
+For greater readability, we have also added new line characters before
 the `|>` operators.
 
 The body of our `main` function consists of several function
@@ -162,24 +167,28 @@ function. Consider the *[HelloWorld3.elm](HelloWorld3.elm)* program, which displ
 same text that *[HelloWorld2.elm](HelloWorld2.elm)* does, but is written in a slightly
 different way.
 
+% HelloWorld3.elm
       import Text as T
+
 
       makeBlue : Text -> Text
       makeBlue = T.color blue
 
+
       main : Element
-      main = T.toText "Hello World" |>
-             makeBlue |>
-             T.italic |>
-             T.bold |>
-             T.height 60 |>
-             T.leftAligned
+      main =
+          T.toText "Hello World"
+          |> makeBlue
+          |> T.italic
+          |> T.bold
+          |> T.height 60
+          |> T.leftAligned
 
 The first difference is the use of a *qualified* import. By suffixing
 the import statement for the `Text` module with the `as T` clause, we
 make the `Text` module available with the qualified name `T` instead
 of the full name `Text`. The references to the functions defined in
-that module must now be prefixed with `T.` instead of `Text.`.
+that module must now be prefixed with `T.`.
 
 The `main` function differs from its equivalent in the previous
 program by using the auxiliary function `makeBlue` instead of directly
