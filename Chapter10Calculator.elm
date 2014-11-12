@@ -25,16 +25,19 @@ We start our analysis with the `CalculatorModel` module defined in the
 *[CalculatorModel.elm](CalculatorModel.elm)* file. The module starts with
 thdeclaration and a list of imports:
 
+% CalculatorModel.elm
       module CalculatorModel where
+
 
       import Char
       import Set
       import String
       import Maybe (maybe)
 
-The following line defines a new data type called `ButtonSize`:
+The following line defines a new data type called `ButtonType`:
+% CalculatorModel.elm
 
-      data ButtonSize = Regular | Large
+      data ButtonType = Regular | Large
 
 The definition starts with the `data` keyword followed by the type
 name, the equals sign and the type definition. The `data` keyword is
@@ -79,13 +82,15 @@ and ‘c’:
       Cons 'a' (Cons 'b' (Cons 'c' Nil)) : GenericList Char
 
 Let’s now go back to the `CalculatorModel` module. The `buttonSize`
-function accepts a value of type `ButtonSize` as argument and returns
+function accepts a value of type `ButtonType` as argument and returns
 an integer number:
+% CalculatorModel.elm
 
-      buttonSize : ButtonSize -> Int
-      buttonSize size = case size of
-        Regular -> 60
-        Large -> 120
+      buttonSize : ButtonType -> Int
+      buttonSize size =
+          case size of
+              Regular -> 60
+              Large -> 120
 
 We use here the `case` expression, which let us *pattern match* on the
 individual type constructors (or, more generally, on *patterns*). Elm
@@ -102,16 +107,17 @@ and once any of them matches, the others are skipped.
       > buttonSize Large
       120 : Int
 
-Since the type constructors of the `ButtonSize` type are very simple,
+Since the type constructors of the `ButtonType` type are very simple,
 the patterns used in the `buttonSize` function are also simple — they
 exactly correspond to the type constructors. As another example, let
 us analyze the following function, which calculates the length of a
 `GenericList`:
 
       listSize : GenericList a -> Int
-      listSize lst = case lst of
-        Nil -> 0
-        Cons _ tail -> 1 + listSize tail
+      listSize lst =
+          case lst of
+              Nil -> 0
+              Cons _ tail -> 1 + listSize tail
 
 If the `lst` list is empty, the first pattern matches, and the
 function returns 0. The second pattern is more interesting. It
@@ -132,11 +138,13 @@ returns 1 plus the result of a recursive call to itself with the
 
 The `CalculatorModel` module defines a record type representing the
 calculator state.
+% CalculatorModel.elm
 
       type CalculatorState = {
-        input: String,
-        operator: String,
-        number: Float }
+               input: String,
+               operator: String,
+               number: Float
+           }
 
 The calculator needs to remember three things, represented by three
 state members:
@@ -149,22 +157,26 @@ state members:
 The exact rules of how the calculator works are implemented in the
 `step` function, which takes as arguments the current calculator state
 and the button clicked by the user and calculates the new state.
+% CalculatorModel.elm
 
       step : String -> CalculatorState -> CalculatorState
       step btn state =
-        if | btn == "C" -> initialState
-           | btn == "CE" -> { state | input <- "0" }
-           | state.input == "" && isOper btn -> { state | operator <- btn }
-           | isOper btn -> {
-                number = calculate state.number state.operator state.input,
-                operator = btn,
-                input = "" }
-           | otherwise -> { state | input <-
-               if | (state.input == "" || state.input == "0") && btn == "." -> "0."
-                  | state.input == "" || state.input == "0" -> btn
-                  | String.length state.input >= 18 -> state.input
-                  | btn == "." && any (\c -> c == '.') (String.toList state.input) -> state.input
-                  | otherwise -> state.input ++ btn }
+          if  | btn == "C" -> initialState
+              | btn == "CE" -> { state | input <- "0" }
+              | state.input == "" && isOper btn -> { state | operator <- btn }
+              | isOper btn -> {
+                    number = calculate state.number state.operator state.input,
+                    operator = btn,
+                    input = ""
+                }
+              | otherwise ->
+                    { state |
+                        input <-
+                             if  | (state.input == "" || state.input == "0") && btn == "." -> "0."
+                                 | state.input == "" || state.input == "0" -> btn
+                                 | String.length state.input >= 18 -> state.input
+                                 | btn == "." && any (\c -> c == '.') (String.toList state.input) -> state.input
+                                 | otherwise -> state.input ++ btn }
 
 The `step` function uses an alternative form of the `if`
 expression. The `if` keyword is followed by a number of conditions and
@@ -188,6 +200,7 @@ The following two forms of the `if` expression are thus equivalent:
 The `step` function works as follows. If the user selects the *C*
 button, the initial state, calculated by the `initialState` function,
 is returned.
+% CalculatorModel.elm
 
       initialState = { number = 0.0, input = "", operator = "" }
 
@@ -207,6 +220,7 @@ the `operator` member. The whole expression does not change the
 the `operator` member updated.
 
 The `isOper` function is defined as follows:
+% CalculatorModel.elm
 
       isOper : String -> Bool
       isOper btn = Set.member btn (Set.fromList ["+","-","*","/","="])
@@ -226,15 +240,17 @@ calculated and returned as follows:
   * the `input` is reset to an empty string
 
 The `calculate` function is defined as follows:
+% CalculatorModel.elm
 
       calculate : Float -> String -> String -> Float
       calculate number op input =
-        let number2 = maybe 0.0 identity (String.toFloat input)
-        in if | op == "+" -> number + number2
-              | op == "-" -> number - number2
-              | op == "*" -> number * number2
-              | op == "/" -> number / number2
-              | otherwise ->  number2
+          let number2 = maybe 0.0 identity (String.toFloat input)
+          in
+              if  | op == "+" -> number + number2
+                  | op == "-" -> number - number2
+                  | op == "*" -> number * number2
+                  | op == "/" -> number / number2
+                  | otherwise ->  number2
 
 It first converts the value of the `input` member to a floating point
 number using the `String.toFloat` function. That function does not
@@ -290,33 +306,45 @@ There is one more function in the `CalculatorModel` module. The
 calculator display. The result is the value of the `input` member,
 unless it is empty, in which case the value of the `number` member is
 converted to a string and returned.
+% CalculatorModel.elm
 
       showState : CalculatorState -> String
-      showState {number,input} = if input == "" then show number else input
+      showState {number,input} =
+          if input == ""
+              then show number
+              else input
 
 We can now turn our analysis to the `CalculatorView` module, which is
 defined in the *[CalculatorView.elm](CalculatorView.elm)* file. Its
 definition starts as follows:
 
+% CalculatorView.elm
       module CalculatorView where
 
+
       import CalculatorModel (..)
-      import Graphics.Input (Input,input,clickable)
+      import Graphics.Input (Input, input, clickable)
       import Text
 
 After the imports, the `makeButton` function is defined. That function
 creates an element representing a calculator button. It takes a string
 that will be the button label, and a `ButtonType` value as arguments.
+% CalculatorView.elm
 
       makeButton : String -> ButtonType -> Element
       makeButton label size =
-        let xSize = buttonSize size
-            buttonColor = rgb 199 235 243
-        in collage xSize 60 [
-                  filled buttonColor <| rect (toFloat (xSize-8)) 52,
-                  outlined { defaultLine | width <- 2, cap <- Padded } <|
-                    rect (toFloat (xSize-8)) 52,
-                  Text.toText label |> Text.height 30 |> Text.bold |> Text.centered |> toForm]
+          let xSize = buttonSize size
+              buttonColor = rgb 199 235 243
+          in
+              collage
+                  xSize
+                  60
+                  [
+                      filled buttonColor <| rect (toFloat (xSize-8)) 52,
+                      outlined { defaultLine | width <- 2, cap <- Padded }
+                          <| rect (toFloat (xSize-8)) 52,
+                      Text.toText label |> Text.height 30 |> Text.bold |> Text.centered |> toForm
+                  ]
 
 A button is composed of a filled rectangle, which forms the button
 background color, an outlined rectangle forming the button border, and
@@ -403,21 +431,26 @@ The *CalculatorViewTest1.elm* program (showed below) can be used to
 visually test the `makeButton` function (try it
 [here](CalculatorViewTest1.html)).
 
+% CalculatorViewTest1.elm
       import CalculatorModel (..)
       import CalculatorView (..)
+
+
       main = makeButton "test" Large
 
 Being able to create a button is not enough for our purposes. What we
 need is a *clickable* button. A button, which will have some kind of
 signal associated with it. We create such buttons using the
 `makeButtonAndSignal` function:
+% CalculatorView.elm
 
       makeButtonAndSignal : String -> ButtonType -> (Element, Signal String)
       makeButtonAndSignal label btnSize =
-        let buttonInput = input label
-            button = makeButton label btnSize
-            clickableButton = clickable buttonInput.handle label button
-        in (clickableButton, buttonInput.signal)
+          let buttonInput = input label
+              button = makeButton label btnSize
+              clickableButton = clickable buttonInput.handle label button
+          in
+              (clickableButton, buttonInput.signal)
 
 To create a clickable element, we first need an `Input` value. The
 `Input` type is defined in the `Graphics.Input` module and is a record
@@ -445,54 +478,74 @@ the clickable button and the signal.
 
 Next, we use the `makeButtonAndSignal` function to create all the
 calculator buttons and the associated signals.
+% CalculatorView.elm
 
-      (button0,     button0Signal)     = makeButtonAndSignal "0" Regular
-      (button1,     button1Signal)     = makeButtonAndSignal "1" Regular
-      (button2,     button2Signal)     = makeButtonAndSignal "2" Regular
-      (button3,     button3Signal)     = makeButtonAndSignal "3" Regular
-      (button4,     button4Signal)     = makeButtonAndSignal "4" Regular
-      (button5,     button5Signal)     = makeButtonAndSignal "5" Regular
-      (button6,     button6Signal)     = makeButtonAndSignal "6" Regular
-      (button7,     button7Signal)     = makeButtonAndSignal "7" Regular
-      (button8,     button8Signal)     = makeButtonAndSignal "8" Regular
-      (button9,     button9Signal)     = makeButtonAndSignal "9" Regular
-      (buttonEq,    buttonEqSignal)    = makeButtonAndSignal "=" Regular
-      (buttonPlus,  buttonPlusSignal)  = makeButtonAndSignal "+" Regular
+      (button0, button0Signal) = makeButtonAndSignal "0" Regular
+      (button1, button1Signal) = makeButtonAndSignal "1" Regular
+      (button2, button2Signal) = makeButtonAndSignal "2" Regular
+      (button3, button3Signal) = makeButtonAndSignal "3" Regular
+      (button4, button4Signal) = makeButtonAndSignal "4" Regular
+      (button5, button5Signal) = makeButtonAndSignal "5" Regular
+      (button6, button6Signal) = makeButtonAndSignal "6" Regular
+      (button7, button7Signal) = makeButtonAndSignal "7" Regular
+      (button8, button8Signal) = makeButtonAndSignal "8" Regular
+      (button9, button9Signal) = makeButtonAndSignal "9" Regular
+      (buttonEq, buttonEqSignal) = makeButtonAndSignal "=" Regular
+      (buttonPlus, buttonPlusSignal) = makeButtonAndSignal "+" Regular
       (buttonMinus, buttonMinusSignal) = makeButtonAndSignal "-" Regular
-      (buttonDiv,   buttonDivSignal)   = makeButtonAndSignal "/" Regular
-      (buttonMult,  buttonMultSignal)  = makeButtonAndSignal "*" Regular
-      (buttonDot,   buttonDotSignal)   = makeButtonAndSignal "." Regular
-      (buttonC,     buttonCSignal)     = makeButtonAndSignal "C" Large
-      (buttonCE,    buttonCESignal)    = makeButtonAndSignal "CE" Large
+      (buttonDiv, buttonDivSignal) = makeButtonAndSignal "/" Regular
+      (buttonMult, buttonMultSignal) = makeButtonAndSignal "*" Regular
+      (buttonDot, buttonDotSignal) = makeButtonAndSignal "." Regular
+      (buttonC, buttonCSignal) = makeButtonAndSignal "C" Large
+      (buttonCE, buttonCESignal) = makeButtonAndSignal "CE" Large
 
 Besides the buttons, the calculator needs a display where the results
 of the calculation as well as the user input will be shown. The
 `display` function creates it.
+% CalculatorView.elm
 
       display : CalculatorState -> Element
       display state =
-        collage 240 60 [
+          collage 240 60 [
              outlined { defaultLine | width <- 2, cap <- Padded } <| rect 232 50,
-             toForm (container 220 50 midRight (plainText <| showState state)) ]
+             toForm (container 220 50 midRight (plainText <| showState state))
+          ]
 
 It takes the calculator state as argument and uses the `showState`
 function to present it to the user.
 
 Finally, the `view` function combines the components and draws the calculator.
+% CalculatorView.elm
 
-      view : CalculatorState -> (Int,Int) -> Element
-      view value (w,h) = container w h middle <|
-        layers [
-          collage 250 370 [ rect 248 368 |>
-            outlined { defaultLine | width <- 3, cap <- Padded } ],
-          flow down [ spacer 250 5
-                    , flow right [spacer 5 60, display value]
-                    , flow right [spacer 5 60, buttonCE, buttonC]
-                    , flow right [spacer 5 60, buttonPlus,  button1, button2,   button3]
-                    , flow right [spacer 5 60, buttonMinus, button4, button5,   button6]
-                    , flow right [spacer 5 60, buttonMult,  button7, button8,   button9]
-                    , flow right [spacer 5 60, buttonDiv,   button0, buttonDot, buttonEq]
-                    ]]
+      view : CalculatorState -> (Int, Int) -> Element
+      view value (w, h) =
+          container
+              w
+              h
+              middle
+              <| layers
+                  [
+                      collage
+                          250
+                          370
+                          [
+                              rect
+                                  248
+                                  368
+                                  |> outlined { defaultLine | width <- 3, cap <- Padded }
+                          ],
+                      flow
+                          down
+                          [
+                              spacer 250 5,
+                              flow right [ spacer 5 60, display value ],
+                              flow right [ spacer 5 60, buttonCE, buttonC ],
+                              flow right [ spacer 5 60, buttonPlus, button1, button2, button3 ],
+                              flow right [ spacer 5 60, buttonMinus, button4, button5, button6 ],
+                              flow right [ spacer 5 60, buttonMult, button7, button8, button9 ],
+                              flow right [ spacer 5 60, buttonDiv, button0, buttonDot, buttonEq ]
+                          ]
+                  ]
 
 The `view` function takes two arguments: the calculator state, and a
 pair representing the window sizes. The `CalculatorView` module
@@ -501,33 +554,40 @@ defines a `main` method for testing purposes. You can see it in action
 
 The `Calculator` module is the main module of our calculator program:
 
+% Calculator.elm
       module Calculator where
+
 
       import CalculatorModel (..)
       import CalculatorView (..)
       import Window
 
-      lastButtonClicked = merges [
-        button0Signal,
-        button1Signal,
-        button2Signal,
-        button3Signal,
-        button4Signal,
-        button5Signal,
-        button6Signal,
-        button7Signal,
-        button8Signal,
-        button9Signal,
-        buttonEqSignal,
-        buttonPlusSignal,
-        buttonMinusSignal,
-        buttonDivSignal,
-        buttonMultSignal,
-        buttonDotSignal,
-        buttonCSignal,
-        buttonCESignal]
+
+      lastButtonClicked =
+          merges [
+              button0Signal,
+              button1Signal,
+              button2Signal,
+              button3Signal,
+              button4Signal,
+              button5Signal,
+              button6Signal,
+              button7Signal,
+              button8Signal,
+              button9Signal,
+              buttonEqSignal,
+              buttonPlusSignal,
+              buttonMinusSignal,
+              buttonDivSignal,
+              buttonMultSignal,
+              buttonDotSignal,
+              buttonCSignal,
+              buttonCESignal
+          ]
+
 
       stateSignal = foldp step initialState lastButtonClicked
+
 
       main = lift2 view stateSignal Window.dimensions
 
