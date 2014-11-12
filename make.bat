@@ -12,12 +12,38 @@ mkdir target\Chess
 
 extractCode Chapter1HelloWorld.elm
 extractCode Chapter2FibonacciBars.elm
+extractCode Chapter3MouseSignals.elm
+extractCode Chapter4WindowSignals.elm
+extractCode Chapter5Eyes.elm
+extractCode Chapter6TimeSignals.elm
+extractCode Chapter7DelayedCircles.elm
+extractCode Chapter8RandomSignals.elm
+extractCode Chapter9Circles.elm
+extractCode Chapter10Calculator.elm
+extractCode Chapter11KeyboardSignals.elm
+extractCode Chapter12Paddle.elm
+extractCode Chapter13TicTacToe.elm
+extractCode Chapter14Snake.elm
+extractCode Chapter15SnakeRevisited.elm
 
 copy /y code\* target
 copy /y *.elm target
 
 prepareChapterSource Chapter1HelloWorld.elm
 prepareChapterSource Chapter2FibonacciBars.elm
+prepareChapterSource Chapter3MouseSignals.elm
+prepareChapterSource Chapter4WindowSignals.elm
+prepareChapterSource Chapter5Eyes.elm
+prepareChapterSource Chapter6TimeSignals.elm
+prepareChapterSource Chapter7DelayedCircles.elm
+prepareChapterSource Chapter8RandomSignals.elm
+prepareChapterSource Chapter9Circles.elm
+prepareChapterSource Chapter10Calculator.elm
+prepareChapterSource Chapter11KeyboardSignals.elm
+prepareChapterSource Chapter12Paddle.elm
+prepareChapterSource Chapter13TicTacToe.elm
+prepareChapterSource Chapter14Snake.elm
+prepareChapterSource Chapter15SnakeRevisited.elm
 
 cd target
 

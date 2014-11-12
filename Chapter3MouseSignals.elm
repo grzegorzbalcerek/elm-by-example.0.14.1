@@ -17,8 +17,11 @@ let’s see them in action. Take a look at the
 *[MouseSignals1.elm](MouseSignals1.elm)* program, presented below. A
 working example is available [here](MouseSignals1.html).
 
-    import Mouse
-    main = lift asText Mouse.x
+% MouseSignals1.elm
+      import Mouse
+
+
+      main = lift asText Mouse.x
 
 Try running that program and notice what happens as you move your
 mouse pointer. The program shows the `x` coordinate of the mouse
@@ -69,10 +72,13 @@ The next example — *[MouseSignals2.elm](MouseSignals2.elm)* — shows
 two signals combined together and displayed as a pair of mouse pointer
 coordinates. You can see it in action [here](MouseSignals2.html).
 
+% MouseSignals2.elm
       import Mouse
+
 
       combine : a -> b -> Element
       combine a b = asText (a,b)
+
 
       main = lift2 combine Mouse.x Mouse.y
 
@@ -114,28 +120,38 @@ To complete our presentation of mouse-related signals, let’s take a
 look at yet another program — *[MouseSignals3.elm](MouseSignals3.elm)*
 (the working program is available [here](MouseSignals3.html)):
 
+% MouseSignals3.elm
       import Mouse
 
-      showsignals a b c d e f g h =
-       flow down <| map plainText
-       [ "Mouse.position: " ++ show a
-       , "Mouse.x: " ++ show b
-       , "Mouse.y: " ++ show c
-       , "Mouse.clicks: " ++ show d
-       , "Mouse.isDown: " ++ show e
-       , "count Mouse.isDown: " ++ show f
-       , "sampleOn Mouse.clicks Mouse.position: " ++ show g
-       , "sampleOn Mouse.isDown Mouse.position: " ++ show h
-       ]
 
-      main = showsignals <~ Mouse.position
-                          ~ Mouse.x
-                          ~ Mouse.y
-                          ~ Mouse.clicks
-                          ~ Mouse.isDown
-                          ~ count Mouse.isDown
-                          ~ sampleOn Mouse.clicks Mouse.position
-                          ~ sampleOn Mouse.isDown Mouse.position
+      showsignals a b c d e f g h =
+          flow
+              down
+              <|
+                  map
+                      plainText
+                      [
+                          "Mouse.position: " ++ show a,
+                          "Mouse.x: " ++ show b,
+                          "Mouse.y: " ++ show c,
+                          "Mouse.clicks: " ++ show d,
+                          "Mouse.isDown: " ++ show e,
+                          "count Mouse.isDown: " ++ show f,
+                          "sampleOn Mouse.clicks Mouse.position: " ++ show g,
+                          "sampleOn Mouse.isDown Mouse.position: " ++ show h
+                      ]
+
+
+      main =
+          showsignals
+              <~ Mouse.position
+              ~ Mouse.x
+              ~ Mouse.y
+              ~ Mouse.clicks
+              ~ Mouse.isDown
+              ~ count Mouse.isDown
+              ~ sampleOn Mouse.clicks Mouse.position
+              ~ sampleOn Mouse.isDown Mouse.position
 
 The `showsignals` function presents a list of several (eight) values
 with descriptions. Each item on that list represents a signal. Signal

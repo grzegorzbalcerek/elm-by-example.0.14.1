@@ -20,20 +20,31 @@ represent the dimensions of the browser window. The
 *[WindowSignals1.elm](WindowSignals1.elm)* program is presented below,
 and its working instance is available [here](WindowSignals1.html).
 
+% WindowSignals1.elm
       module WindowSignals1 where
+
 
       import Window
 
-      showsignals a b c =
-       flow down <| map plainText
-       [ "Window.dimensions: " ++ show a
-       , "Window.width: " ++ show b
-       , "Window.height: " ++ show c
-       ]
 
-      main = showsignals <~ Window.dimensions
-                          ~ Window.width
-                          ~ Window.height
+      showsignals a b c =
+          flow
+              down
+              <|
+                  map
+                  plainText
+                  [
+                      "Window.dimensions: " ++ show a,
+                      "Window.width: " ++ show b,
+                      "Window.height: " ++ show c
+                  ]
+
+
+      main =
+          showsignals
+              <~ Window.dimensions
+              ~ Window.width
+              ~ Window.height
 
 Three signals are presented by the program:
 
@@ -45,6 +56,7 @@ We will now embed our program in an HTML page. The
 *WindowSignals2.html* page shows how an Elm program can be
 embedded. Here is the page source:
 
+% WindowSignals2.html
       <html>
         <head>
           <script src="elm-runtime.js"></script>

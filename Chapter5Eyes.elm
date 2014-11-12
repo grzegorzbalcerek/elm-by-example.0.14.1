@@ -28,33 +28,44 @@ The code is divided into three modules:
 We start our analysis with the `EyesView` module defined in the
 *[EyesView.elm](EyesView.elm)* file:
 
+% EyesView.elm
       {-
         This module contains functions which draw
         the eyes.
       -}
       module EyesView where
 
+
       eyeBorder : Float -> Float -> Form
-      eyeBorder w h = group
-        [ filled black <| oval w h
-        , filled white <| oval (w*9/10) (h*9/10) ]
+      eyeBorder w h =
+          group [
+              filled black <| oval w h,
+              filled white <| oval (w*9/10) (h*9/10)
+          ]
+
 
       eyePupil : Float -> Float -> Form
       eyePupil w h = filled black <| oval w h
 
-      eyesView : (Int,Int) -> (Float,Float,Float,Float) -> Element
-      eyesView (w,h) (xPl,yPl,xPr,yPr) =
-        let xC = (toFloat w)/4
-            yC = (toFloat h)/2
-        in
-          collage w h
-            [ eyeBorder (2*xC) (2*yC) |> moveX (-xC)
-            , eyeBorder (2*xC) (2*yC) |> moveX xC
-            , eyePupil (xC/5) (yC/5) |> move (xPl,yPl)
-            , eyePupil (xC/5) (yC/5) |> move (xPr,yPr) ]
+
+      eyesView : (Int, Int) -> (Float, Float, Float, Float) -> Element
+      eyesView (w, h) (xPl, yPl, xPr, yPr) =
+          let xC = (toFloat w) / 4
+              yC = (toFloat h) / 2
+          in
+              collage
+                  w
+                  h
+                  [
+                      eyeBorder (2*xC) (2*yC) |> moveX (-xC),
+                      eyeBorder (2*xC) (2*yC) |> moveX xC,
+                      eyePupil (xC/5) (yC/5) |> move (xPl,yPl),
+                      eyePupil (xC/5) (yC/5) |> move (xPr,yPr)
+                  ]
+
 
       -- test
-      main = eyesView (700,500) (-50,-50,100,100)
+      main = eyesView (700, 500) (-50, -50, 100, 100)
 
 Before the module declaration we have included a multi-line comment.
 Such comments are delimited by the `{-` and `-}` pairs of characters.
@@ -212,18 +223,22 @@ the formulas for calculating *xB* and *yB*:
 The `calculateP` function from the `EyesModel` module implements the
 calculations:
 
+% EyesModel.elm
       module EyesModel where
 
-      calculateP : (Float,Float) -> (Float,Float) -> (Float,Float) -> (Float,Float)
-      calculateP (xR,yR) (xC,yC) (xM,yM) =
-        let (xA,yA) = if (yM/xM < yC/xC)
+
+      calculateP : (Float, Float) -> (Float, Float) -> (Float, Float) -> (Float, Float)
+      calculateP (xR, yR) (xC, yC) (xM, yM) =
+          let (xA, yA) =
+                  if (yM/xM < yC/xC)
                       then (xC,xC*yM/xM)
                       else (xM*yC/yM,yC)
-            xB = xR*yR / sqrt (yR^2+(xR*yM/xM)^2)
-            yB = xR*yR / sqrt (xR^2+(yR*xM/yM)^2)
-            xP = xB*xM/xA
-            yP = yB*yM/yA
-        in (xP,yP)
+              xB = xR*yR / sqrt (yR^2+(xR*yM/xM)^2)
+              yB = xR*yR / sqrt (xR^2+(yR*xM/yM)^2)
+              xP = xB*xM/xA
+              yP = yB*yM/yA
+          in
+              (xP,yP)
 
 For testing purposes, we can call the function with some example
 arguments using `elm-repl`:
@@ -271,8 +286,9 @@ pupils. It calls `calculateP` with parameters adjusted depending on
 which area of the screen the mouse pointer is. The function returns a
 4-elements tuple containing the coordinates of both pupils.
 
-      pupilsCoordinates : (Int,Int) -> (Int,Int) -> (Float,Float,Float,Float)
-      pupilsCoordinates (w,h) (x,y) =
+% EyesModel.elm
+      pupilsCoordinates : (Int, Int) -> (Int, Int) -> (Float, Float, Float, Float)
+      pupilsCoordinates (w, h) (x, y) =
         let xC = (toFloat w)/4
             yC = (toFloat h)/2
             xM = toFloat x
@@ -280,27 +296,33 @@ which area of the screen the mouse pointer is. The function returns a
             xR = xC*9/10
             yR = yC*9/10
             sign x = x / (abs x)
-            (xPr,yPr) = if xM >= 3*xC
-                        then calculateP (xR,yR) (xC,yC) (xM-3*xC,yM) |>
-                               \(xP,yP) -> (xP+xC, yP * sign yM)
-                        else calculateP (xR,yR) (3*xC,yC) (3*xC-xM,yM) |>
-                               \(xP,yP) -> (xC-xP, yP * sign yM)
-            (xPl,yPl) = if xM >= xC
-                        then calculateP (xR,yR) (3*xC,yC) (xM-xC,yM) |>
-                               \(xP,yP) -> (xP-xC, yP * sign yM)
-                        else calculateP (xR,yR) (xC,yC) (-xM+xC,yM) |>
-                               \(xP,yP) -> (-xP-xC, yP * sign yM)
-        in (xPl,yPl,xPr,yPr)
+            (xPr,yPr) =
+                if xM >= 3*xC
+                    then calculateP (xR,yR) (xC,yC) (xM-3*xC,yM)
+                             |> \(xP,yP) -> (xP+xC, yP * sign yM)
+                    else calculateP (xR,yR) (3*xC,yC) (3*xC-xM,yM)
+                        |> \(xP,yP) -> (xC-xP, yP * sign yM)
+            (xPl,yPl) =
+                if xM >= xC
+                    then calculateP (xR,yR) (3*xC,yC) (xM-xC,yM)
+                             |> \(xP,yP) -> (xP-xC, yP * sign yM)
+                    else calculateP (xR,yR) (xC,yC) (-xM+xC,yM)
+                             |> \(xP,yP) -> (-xP-xC, yP * sign yM)
+        in
+            (xPl,yPl,xPr,yPr)
 
 What is left is the `Eyes` module that assembles the program modules
 together:
 
+% Eyes.elm
       import Mouse
       import Window
       import EyesView (..)
       import EyesModel (..)
 
+
       main = lift2 eyes Window.dimensions Mouse.position
+
 
       eyes (w,h) (x,y) = eyesView (w,h) (pupilsCoordinates (w,h) (x,y))
 
