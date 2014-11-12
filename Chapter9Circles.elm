@@ -29,11 +29,26 @@ We start our analysis with the `CirclesModule` module, defined in the
 *[CirclesModel.elm](CirclesModel.elm)*, which starts with the usual
 module declaration followed by three type declarations:
 
+% CirclesModel.elm
       module CirclesModel where
 
+
       type Position = { x: Int, y: Int }
-      type CircleSpec = { radius: Int, xv: Int, yv: Int, col: Color, creationTime: Time }
-      type Circle = { position: Position, circleSpec: CircleSpec }
+
+
+      type CircleSpec = {
+               radius: Int,
+               xv: Int,
+               yv: Int,
+               col: Color,
+               creationTime: Time
+           }
+
+
+      type Circle = {
+               position: Position,
+               circleSpec: CircleSpec
+           }
 
 The module defines three data types, that we will use in our
 program. Their definitions start with the `type` keyword followed by
@@ -88,20 +103,27 @@ later. The `CirclesView` module, defined in the
 declaration and the import of the data types declared in the
 `CirclesModel` module.
 
+% CirclesView.elm
       module CirclesView where
 
-      import CirclesModel (Position,CircleSpec,Circle)
+
+      import CirclesModel (Position, CircleSpec, Circle)
 
 The `boundingBox` function draws a square of a given width and
 height. The `outlined` function draws the square border using the line
 specification provided as its first argument. In our case we want a
 solid black line. The `solid` function takes a color and returns a
 `LineStyle` value representing the line style to be used.
+% CirclesView.elm
 
-      boundingBox w h = collage w h [
-          outlined (solid black) <| rect (toFloat w) (toFloat h),
-          outlined (solid black) <| rect (toFloat (w-2)) (toFloat (h-2))
-        ]
+      boundingBox w h =
+          collage
+              w
+              h
+              [
+                  outlined (solid black) <| rect (toFloat w) (toFloat h),
+                  outlined (solid black) <| rect (toFloat (w-2)) (toFloat (h-2))
+              ]
 
 The `drawCircle` function draws a circle. It takes as arguments the
 width and height of the bounding box, and the information about the
@@ -115,10 +137,11 @@ argument. Although the `drawCircle` function enumerates all members of
 the `CircleSpec` data type in the pattern, in general we do not have
 to enumerate all of them if not all of them are used in the function
 body.
+% CirclesView.elm
 
-      drawCircle w h {position,circleSpec} =
-        filled circleSpec.col (circle (toFloat circleSpec.radius)) |>
-          move (toFloat position.x - (toFloat w)/2, (toFloat h)/2 - toFloat position.y)
+      drawCircle w h {position, circleSpec} =
+          filled circleSpec.col (circle (toFloat circleSpec.radius))
+              |> move (toFloat position.x - (toFloat w)/2, (toFloat h)/2 - toFloat position.y)
 
 The circle position is adjusted, because we want to specify the
 position using the same coordinate system that is used by Elm to
@@ -135,8 +158,10 @@ the `drawCircle` function over the list. The `view` function draws the
 complete view by drawing the bounding box first and the circles on top
 of it. To draw two (or more) elements on top of each other, the
 `layers` function from the `Graphics.Element` module is used.
+% CirclesView.elm
 
       drawCircles w h circles = collage w h (map (drawCircle w h) circles)
+
 
       view w h circles = layers [ boundingBox w h, drawCircles w h circles ]
 
@@ -147,15 +172,23 @@ provide all of them when constructing the sample data. With our test
 data, we should see a red circle in the left-upper corner, and a green
 one in the center of the bounding box. You can verify whether that is
 what really happens [here](CirclesView.html).
+% CirclesView.elm
 
-      main = view 400 400 [
-        { circleSpec = { col = red, radius = 26 } , position = { x = 0, y = 0 } },
-        { circleSpec = { col = green, radius = 43 } , position = { x = 200, y = 200 } } ]
+      main =
+          view
+              400
+              400
+              [
+                  { circleSpec = { col = red, radius = 26 } , position = { x = 0, y = 0 } },
+                  { circleSpec = { col = green, radius = 43 } , position = { x = 200, y = 200 } }
+              ]
 
 The `Circles` module defines the signals used in our program. Here is
 its beginning:
 
+% Circles.elm
       module Circles where
+
 
       import Color
       import Time (..)
@@ -238,14 +271,16 @@ The first signal from the `Circles` module is created by the
 `clockSignal` function. It periodically outputs a timestamp. The rate
 of events is established by the `fps` function (fps means frames per
 second) from the `Time` module.
+% Circles.elm
 
       clockSignal : Signal Time
       clockSignal = lift fst (timestamp (fps 50))
 
 The signal created by the `clickPositionsSignal` function outputs the mouse
 pointer position on every click.
+% Circles.elm
 
-      clickPositionsSignal : Signal (Int,Int)
+      clickPositionsSignal : Signal (Int, Int)
       clickPositionsSignal = sampleOn Mouse.clicks Mouse.position
 
 The `inBoxClickPositionsSignal` function takes the width and height as
@@ -254,11 +289,13 @@ arguments and creates a signal, that filters the events from the
 inside the bounding box of the given width and height. The `keepIf`
 function from the standard `Signals` module is used for filtering the
 events.
+% Circles.elm
 
-      inBoxClickPositionsSignal : Int -> Int -> Signal (Int,Int)
+      inBoxClickPositionsSignal : Int -> Int -> Signal (Int, Int)
       inBoxClickPositionsSignal w h =
-        let positionInBox pos = fst pos <= w && snd pos <= h
-        in keepIf positionInBox (0,0) clickPositionsSignal
+          let positionInBox pos = fst pos <= w && snd pos <= h
+          in
+              keepIf positionInBox (0, 0) clickPositionsSignal
 
 When the user clicks inside the bounding box, the `Circles` program is
 supposed to create a new circle. Several circle properties are
@@ -267,50 +304,61 @@ of signals represent those various circle properties.
 
 The `radiusSignal` function produces a signal of values, each of which
 represent the radius of a new, to-be-created circle.
+% Circles.elm
 
       radiusSignal : Int -> Int -> Signal Int
-      radiusSignal w h = range 10 30 (inBoxClickPositionsSignal w h)
+      radiusSignal w h =
+          range 10 30 (inBoxClickPositionsSignal w h)
 
 The `velocitySignal` function generates a signal of values representing the
 vertical or horizontal velocity of the circle.
+% Circles.elm
 
       velocitySignal : Int -> Int -> Signal Int
-      velocitySignal w h = range 10 50 (inBoxClickPositionsSignal w h)
+      velocitySignal w h =
+          range 10 50 (inBoxClickPositionsSignal w h)
 
 The `colorSignal` function generates a signal of values representing the circle
 color. It combines three auxiliary signals, each of which represent
 one of the three basic colors (red, green, blue), by means of the
 `rgb` function from the `Color` module. The `rgb` function takes three
 `Int` values and returns a color.
+% Circles.elm
 
       colorSignal : Int -> Int -> Signal Color
       colorSignal w h =
-        let
-          redSignal = range 0 220 (inBoxClickPositionsSignal w h)
-          greenSignal = range 0 220 (inBoxClickPositionsSignal w h)
-          blueSignal = range 0 220 (inBoxClickPositionsSignal w h)
-        in lift3 rgb redSignal greenSignal blueSignal
+          let
+              redSignal = range 0 220 (inBoxClickPositionsSignal w h)
+              greenSignal = range 0 220 (inBoxClickPositionsSignal w h)
+              blueSignal = range 0 220 (inBoxClickPositionsSignal w h)
+          in
+              lift3 rgb redSignal greenSignal blueSignal
 
 The `creationTimeSignal` function produces a signal representing the creation
 times of the circles. This is not a random signal. It is created by
 sampling (using the `sampleOn` function) the signal produced by the
 `clockSignal` function on the events carried on by the signal from the
 `inBoxClickPositionsSignal` function.
+% Circles.elm
 
       creationTimeSignal : Int -> Int -> Signal Time
-      creationTimeSignal w h = sampleOn (inBoxClickPositionsSignal w h) clockSignal
+      creationTimeSignal w h =
+          sampleOn (inBoxClickPositionsSignal w h) clockSignal
 
 The `newCircleSpecSignal` function combines several signals to produce
 a signal representing the specifications of the new circles.
+% Circles.elm
 
       newCircleSpecSignal : Int -> Int -> Signal CircleSpec
       newCircleSpecSignal w h =
-        let makeCircleSpec r xv yv c t = { radius = r, xv = xv, yv = yv, col = c, creationTime = t }
-        in makeCircleSpec <~ radiusSignal w h
-                           ~ velocitySignal w h
-                           ~ velocitySignal w h
-                           ~ colorSignal w h
-                           ~ creationTimeSignal w h
+          let makeCircleSpec r xv yv c t = { radius = r, xv = xv, yv = yv, col = c, creationTime = t }
+          in
+              makeCircleSpec
+                  <~ radiusSignal w h
+                  ~ velocitySignal w h
+                  ~ velocitySignal w h
+                  ~ colorSignal w h
+                  ~ creationTimeSignal w h
 
 A full circle representation consists of its specification and its
 position. The `newCircleSignal` function produces a signal
@@ -318,12 +366,15 @@ representing circles by combining the `newCircleSpecSignal`
 (representing the specifications) and the `inBoxClickPositionsSignal`
 (representing the positions — the initial position of a circle is the
 position of where the user clicked inside the bounding box) signals.
+% Circles.elm
 
       newCircleSignal : Int -> Int -> Signal Circle
       newCircleSignal w h =
-        let makeCircle (x,y) spec = { position = { x = x, y = y }, circleSpec = spec }
-        in makeCircle <~ inBoxClickPositionsSignal w h
-                       ~ newCircleSpecSignal w h
+          let makeCircle (x,y) spec = { position = { x = x, y = y }, circleSpec = spec }
+          in
+              makeCircle
+                  <~ inBoxClickPositionsSignal w h
+                  ~ newCircleSpecSignal w h
 
 We have arrived to a moment when we want to maintain state in our
 program. We want the program to remeber the circles created each time
@@ -376,9 +427,11 @@ prepended to the list.
 
 We can thus use the `::` operator as the first argument to our `foldp`
 call:
+% Circles.elm
 
       allCirclesSpecSignal : Int -> Int -> Signal [Circle]
-      allCirclesSpecSignal w h = foldp (::) [] (newCircleSignal w h)
+      allCirclesSpecSignal w h =
+          foldp (::) [] (newCircleSignal w h)
 
 Since `::` is an operator — its name is not alphanumeric, but it
 contains other symbols — we have to enclose its name in
@@ -402,30 +455,34 @@ to the right or downwards and the coordinate is taken as the distance
 modulo the box size. If it is odd, the circle should move to the left
 or upwards, and the coordinate is the box size minus the distance
 modulo the box size.
+% Circles.elm
 
       computeCoordinate : Int -> Int -> Float -> Float -> Int
       computeCoordinate startingPointCoordinate boxSize velocity time =
-        let
-          distance = startingPointCoordinate + round(velocity * time / 1000)
-          distanceMod = distance % boxSize
-          distanceDiv = distance // boxSize
-        in if (distanceDiv % 2 == 0) then distanceMod else boxSize - distanceMod
+          let distance = startingPointCoordinate + round(velocity * time / 1000)
+              distanceMod = distance % boxSize
+              distanceDiv = distance // boxSize
+        in
+            if (distanceDiv % 2 == 0)
+                then distanceMod
+                else boxSize - distanceMod
 
 The `positionedCircle` function transforms a `Circle` value
 representing its initial state, into a new `Circle` value with its
 position updated.
+% Circles.elm
 
       positionedCircle : Int -> Int -> Float -> Circle -> Circle
       positionedCircle w h time circle =
-        let
-          {position, circleSpec} = circle
-          {radius, xv, yv, creationTime} = circleSpec
-          relativeTime = time - creationTime
-          boxSizeX = w - radius*2
-          boxSizeY = h - radius*2
-          x = radius + computeCoordinate (position.x-radius) boxSizeX (toFloat xv) relativeTime
-          y = radius + computeCoordinate (position.y-radius) boxSizeY (toFloat yv) relativeTime
-        in { position = { x=x, y=y }, circleSpec = circleSpec }
+          let {position, circleSpec} = circle
+              {radius, xv, yv, creationTime} = circleSpec
+              relativeTime = time - creationTime
+              boxSizeX = w - radius*2
+              boxSizeY = h - radius*2
+              x = radius + computeCoordinate (position.x-radius) boxSizeX (toFloat xv) relativeTime
+              y = radius + computeCoordinate (position.y-radius) boxSizeY (toFloat yv) relativeTime
+          in
+              { position = { x=x, y=y }, circleSpec = circleSpec }
 
 We use two different techniques to access individual members of the
 `Circle` record. The first line after the `let` keyword use pattern
@@ -451,9 +508,11 @@ operation, may not be in the same place where the user clicked.)
 The `positionedCircles` function maps the `positionedCircle` function
 partially applied with the appropriate parameters, through a list of
 `Circle` values.
+% Circles.elm
 
       positionedCircles : Int -> Int -> Float -> [Circle] -> [Circle]
-      positionedCircles w h time circles = map (positionedCircle w h time) circles
+      positionedCircles w h time circles =
+          map (positionedCircle w h time) circles
 
 Notice how we have used the `positionedCircle` function. That function
 takes a `Circle` as its last argument. The `map` function requires a
@@ -466,6 +525,7 @@ We can now use `positionedCircles` to create a signal of circles whose
 positions change while time passes. This is the job of the
 `circlesSignal` function, which combines the signals produced by
 `clockSignal` and `allCirclesSpecSignal`.
+% Circles.elm
 
       circlesSignal : Int -> Int -> Signal [Circle]
       circlesSignal w h = positionedCircles w h <~ clockSignal
@@ -474,9 +534,12 @@ positions change while time passes. This is the job of the
 The `main` function uses the values of the `circlesSignal` as input to
 the `view` function from the `CirclesView` module, producing the main
 program signal, that is rendered by Elm’s runtime.
+% Circles.elm
 
-      main = let main' w h = view w h <~ circlesSignal w h
-              in main' 400 400
+      main =
+          let main' w h = view w h <~ circlesSignal w h
+          in
+              main' 400 400
 
 
 So far we have used signals from the `Mouse` module to get mouse
