@@ -143,15 +143,19 @@ file defines the `main` function. But let’s first a look at the
 *[Fibonacci.elm](Fibonacci.elm)* file, which defines the `Fibonacci`
 module. Here is its content:
 
+% Fibonacci.elm
       module Fibonacci where
+
 
       fibonacci : Int -> [Int]
       fibonacci n =
-        let fibonacci' n acc =
-              if n <= 2
-              then acc
-              else fibonacci' (n-1) ((head acc + (tail >> head) acc) :: acc)
-        in fibonacci' n [1,1] |> reverse
+          let fibonacci' n acc =
+                  if n <= 2
+                  then acc
+                  else fibonacci' (n-1) ((head acc + (tail >> head) acc) :: acc)
+          in
+              fibonacci' n [1,1] |> reverse
+
 
       fibonacciWithIndexes : Int -> [(Int,Int)]
       fibonacciWithIndexes n = zip [0..n] (fibonacci n)
@@ -324,17 +328,24 @@ arguments.
 
 Let’s now look at the contents of the *[FibonacciBars.elm](FibonacciBars.elm)* file.
 
+% FibonacciBars.elm
       module FibonacciBars where
 
-      import Fibonacci (fibonacci,fibonacciWithIndexes)
+
+      import Fibonacci (fibonacci, fibonacciWithIndexes)
+
 
       color n =
-        let colors = [red,orange,yellow,green,blue,purple,brown]
-        in drop (n % (length colors)) colors |> head
+          let colors = [ red, orange, yellow, green, blue, purple, brown ]
+          in
+              drop (n % (length colors)) colors |> head
+
 
       bar (index,n) = flow right [
-        collage (n*20) 20 [filled (color index) (rect (toFloat n * 20) 20)],
-        asText n]
+              collage (n*20) 20 [filled (color index) (rect (toFloat n * 20) 20)],
+              asText n
+          ]
+
 
       main = flow down <| map bar (fibonacciWithIndexes 10)
 

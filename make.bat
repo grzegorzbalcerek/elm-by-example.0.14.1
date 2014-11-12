@@ -11,11 +11,13 @@ mkdir target
 mkdir target\Chess
 
 extractCode Chapter1HelloWorld.elm
+extractCode Chapter2FibonacciBars.elm
 
 copy /y code\* target
 copy /y *.elm target
 
 prepareChapterSource Chapter1HelloWorld.elm
+prepareChapterSource Chapter2FibonacciBars.elm
 
 cd target
 
