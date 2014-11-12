@@ -151,8 +151,8 @@ module. Here is its content:
       fibonacci n =
           let fibonacci' n acc =
                   if n <= 2
-                  then acc
-                  else fibonacci' (n-1) ((head acc + (tail >> head) acc) :: acc)
+                      then acc
+                      else fibonacci' (n-1) ((head acc + (tail >> head) acc) :: acc)
           in
               fibonacci' n [1,1] |> reverse
 
@@ -341,8 +341,9 @@ Let’s now look at the contents of the *[FibonacciBars.elm](FibonacciBars.elm)*
               drop (n % (length colors)) colors |> head
 
 
-      bar (index,n) = flow right [
-              collage (n*20) 20 [filled (color index) (rect (toFloat n * 20) 20)],
+      bar (index, n) =
+          flow right [
+              collage (n*20) 20 [ filled (color index) (rect (toFloat n * 20) 20) ],
               asText n
           ]
 

@@ -48,11 +48,11 @@ custom way. You can see it in action [here](HelloWorld2.html).
       main : Element
       main =
           Text.toText "Hello World"
-          |> Text.color blue
-          |> Text.italic
-          |> Text.bold
-          |> Text.height 60
-          |> Text.leftAligned
+              |> Text.color blue
+              |> Text.italic
+              |> Text.bold
+              |> Text.height 60
+              |> Text.leftAligned
 
 In order to style to our message, we use functions from the `Text`
 module from Elm’s standard library. The first line: `import Text`
@@ -82,7 +82,7 @@ compiler would complain:
 
       $ elm HelloWorld2.elm
       [1 of 1] Compiling Main                ( HelloWorld2.elm )
-      Type error between lines 3 and 8:
+      Type error between lines 6 and 11:
               (((((Text.toText "Hello World") |> (Text.color blue)) |>
                  Text.italic) |>
                 Text.bold) |>
@@ -178,11 +178,11 @@ different way.
       main : Element
       main =
           T.toText "Hello World"
-          |> makeBlue
-          |> T.italic
-          |> T.bold
-          |> T.height 60
-          |> T.leftAligned
+              |> makeBlue
+              |> T.italic
+              |> T.bold
+              |> T.height 60
+              |> T.leftAligned
 
 The first difference is the use of a *qualified* import. By suffixing
 the import statement for the `Text` module with the `as T` clause, we

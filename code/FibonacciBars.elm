@@ -10,8 +10,9 @@ color n =
         drop (n % (length colors)) colors |> head
 
 
-bar (index,n) = flow right [
-        collage (n*20) 20 [filled (color index) (rect (toFloat n * 20) 20)],
+bar (index, n) =
+    flow right [
+        collage (n*20) 20 [ filled (color index) (rect (toFloat n * 20) 20) ],
         asText n
     ]
 
