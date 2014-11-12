@@ -285,8 +285,8 @@ values will be set to *9/10* of *xC* and *yC* respectively. The
 pupils. It calls `calculateP` with parameters adjusted depending on
 which area of the screen the mouse pointer is. The function returns a
 4-elements tuple containing the coordinates of both pupils.
-
 % EyesModel.elm
+
       pupilsCoordinates : (Int, Int) -> (Int, Int) -> (Float, Float, Float, Float)
       pupilsCoordinates (w, h) (x, y) =
         let xC = (toFloat w)/4

@@ -14,6 +14,7 @@ calculateP (xR, yR) (xC, yC) (xM, yM) =
     in
         (xP,yP)
 
+
 pupilsCoordinates : (Int, Int) -> (Int, Int) -> (Float, Float, Float, Float)
 pupilsCoordinates (w, h) (x, y) =
   let xC = (toFloat w)/4

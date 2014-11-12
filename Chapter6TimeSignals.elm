@@ -44,25 +44,34 @@ create time related signals. The *[TimeSignals.elm](TimeSignals.elm)*
 program (a working example is available [here](TimeSignals.html)),
 presents a few examples of their use.
 
+% TimeSignals.elm
       import Time
       import Mouse
 
-      showsignals a b c d e f =
-       flow down <| map plainText
-       [ "every (5*second): " ++ show a
-       , "since (2*second) Mouse.clicks: " ++ show b
-       , "timestamp Mouse.isDown: " ++ show c
-       , "delay second Mouse.position: " ++ show d
-       , "fps 200: " ++ show e
-       , "fpsWhen 200 Mouse.isDown: " ++ show f
-       ]
 
-      main = showsignals <~ every (5*second)
-                          ~ since (2*second) Mouse.clicks
-                          ~ timestamp Mouse.isDown
-                          ~ delay second Mouse.position
-                          ~ fps 200
-                          ~ fpsWhen 200 Mouse.isDown
+      showsignals a b c d e f =
+          flow
+              down
+              <|
+                  map
+                      plainText
+                      [
+                          "every (5*second): " ++ show a,
+                          "since (2*second) Mouse.clicks: " ++ show b,
+                          "timestamp Mouse.isDown: " ++ show c,
+                          "delay second Mouse.position: " ++ show d,
+                          "fps 200: " ++ show e,
+                          "fpsWhen 200 Mouse.isDown: " ++ show f
+                      ]
+
+
+      main = showsignals
+                 <~ every (5*second)
+                 ~ since (2*second) Mouse.clicks
+                 ~ timestamp Mouse.isDown
+                 ~ delay second Mouse.position
+                 ~ fps 200
+                 ~ fpsWhen 200 Mouse.isDown
 
 The first signal, `every second`, outputs the current timestamp every
 5 seconds.
