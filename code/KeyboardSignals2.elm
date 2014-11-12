@@ -1,3 +1,4 @@
 import Keyboard
-main = lift asText Keyboard.lastPressed
 
+
+main = lift asText Keyboard.lastPressed

@@ -38,7 +38,10 @@ codes. [Try](KeyboardSignals1.html) the
 *[KeyboardSignals1.elm](KeyboardSignals1.elm)* program to see it in
 action:
 
+% KeyboardSignals1.elm
       import Keyboard
+
+
       main = lift asText Keyboard.keysDown
 
 The `lastPressed` function returns a signal which provides the code of
@@ -47,7 +50,10 @@ pressed any more. Check it out using the
 *[KeyboardSignals2.elm](KeyboardSignals2.elm)* program
 [here](KeyboardSignals2.html):
 
+% KeyboardSignals2.elm
       import Keyboard
+
+
       main = lift asText Keyboard.lastPressed
 
 The `isDown` function takes a key code as its argument and returns a
@@ -58,8 +64,12 @@ for certain special keys: `shift`, `ctrl`, `space` and
 *[KeyboardSignals3.elm](KeyboardSignals3.elm)* program and try
 pressing the *A* key:
 
+% KeyboardSignals3.elm
       import Keyboard
-      main = lift asText (Keyboard.isDown (toCode 'A'))
+      import Char
+
+
+      main = lift asText (Keyboard.isDown (Char.toCode 'A'))
 
 The `directions` function is useful for building games. It takes
 four key codes as arguments and returns a signal of `{ x: Int, y: Int
@@ -77,7 +87,10 @@ member in a similar way. [Run](KeyboardSignals4.html) the
 *[KeyboardSignals4.elm](KeyboardSignals4.elm)* program and try
 pressing the *Q*, *A*, *O* and *P* keys in various combinations:
 
+% KeyboardSignals4.elm
       import Keyboard
+
+
       main = lift asText (Keyboard.directions 81 65 79 80)
 
 There are also two helper functions defined in terms of `directions`:
