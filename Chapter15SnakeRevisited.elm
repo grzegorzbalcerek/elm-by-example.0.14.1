@@ -7,6 +7,23 @@ content w = pageTemplate [content1]
             "Chapter14Snake" "toc" "" w
 main = lift content Window.width
 
+{-
+% SnakeStateRevisited.elm
+      module SnakeStateRevisited where
+
+
+      import SnakeModel (..)
+      import SnakeSignals (..)
+      import Foldpm
+      import Foldpm (..)
+-}
+
+{-
+% Foldpm.elm
+      module Foldpm where
+
+-}
+
 content1 = [markdown|
 
 # Chapter 15 Snake Revisited
@@ -51,18 +68,21 @@ from the old `step` function.
 The `handleNewGame` function handles the `NewGame` events. It returns
 the initial state wrapped in `Just` if that event is being processed,
 and `Nothing` otherwise.
+% SnakeStateRevisited.elm
 
       handleNewGame : Event -> SnakeState -> Maybe SnakeState
       handleNewGame event _ = when (event == NewGame) initialState
 
 The auxiliary function `when` wraps its second argument in `Just` if
 the first argument is true, and returns `Nothing` otherwise.
+% Foldpm.elm
 
       when : Bool -> a -> Maybe a
       when p result = if p then Just result else Nothing
 
 The `handleGameOver` function returns the state unchanged (but wrapped
 in `Just`), if `state.gameOver` is true. It returns `Nothing` otherwise.
+% SnakeStateRevisited.elm
 
       handleGameOver : Event -> SnakeState -> Maybe SnakeState
       handleGameOver _ state = when (state.gameOver) state
@@ -70,46 +90,54 @@ in `Just`), if `state.gameOver` is true. It returns `Nothing` otherwise.
 The `handleDirection` function returns the state wrapped in `Just` with
 the `delta` member potentially updated, when a `Direction` event is
 received. It returns `Nothing` otherwise.
+% SnakeStateRevisited.elm
 
       handleDirection : Event -> SnakeState -> Maybe SnakeState
-      handleDirection event state = case event of
-        Direction newDelta -> Just { state | delta <- if abs newDelta.dx /= abs state.delta.dx
-                                                      then newDelta
-                                                      else state.delta }
-        _ -> Nothing
+      handleDirection event state =
+          case event of
+              Direction newDelta ->
+                  Just { state | delta <- if abs newDelta.dx /= abs state.delta.dx
+                                          then newDelta
+                                          else state.delta }
+          _ -> Nothing
 
 The `handleTick` function handles the `Tick` events, returning the
 updated state wrapped in `Just` if that event is being processed, and
 `Nothing` otherwise.
+% SnakeStateRevisited.elm
 
       handleTick : Event -> SnakeState -> Maybe SnakeState
-      handleTick event state = case event of
-        Tick newFood ->
-          let state1 = if state.ticks % velocity == 0
-                       then { state | gameOver <- collision state }
-                       else state
-          in if state1.gameOver
-             then Just state1
-             else let state2 = { state1
-                               | snake <-
-                                   if state1.ticks % velocity == 0
-                                   then moveSnakeForward state1.snake state1.delta state1.food
-                                   else state1.snake
-                               }
-                      state3 = { state2
-                               | food <-
-                                   case state2.food of
-                                     Just f -> 
-                                       if state2.ticks % velocity == 0 && head state2.snake.front == f
-                                       then Nothing
-                                       else state2.food
-                                     Nothing ->
-                                       if isInSnake state2.snake newFood
-                                       then Nothing
-                                       else Just newFood
-                               }
-                  in Just { state3 | ticks <- state3.ticks + 1 }
-        _ -> Nothing
+      handleTick event state =
+          case event of
+              Tick newFood ->
+                  let state1 = if state.ticks % velocity == 0
+                               then { state | gameOver <- collision state }
+                               else state
+                  in
+                      if state1.gameOver
+                      then Just state1
+                      else let state2 = { state1
+                                        | snake <-
+                                            if state1.ticks % velocity == 0
+                                            then moveSnakeForward state1.snake state1.delta state1.food
+                                            else state1.snake
+                                        }
+                               state3 = { state2
+                                        | food <-
+                                            case state2.food of
+                                              Just f -> 
+                                                if state2.ticks % velocity == 0 &&
+                                                   head state2.snake.front == f
+                                                then Nothing
+                                                else state2.food
+                                              Nothing ->
+                                                if isInSnake state2.snake newFood
+                                                then Nothing
+                                                else Just newFood
+                                        }
+                           in
+                               Just { state3 | ticks <- state3.ticks + 1 }
+              _ -> Nothing
 
 The fact that the results of the above functions are wrapped in
 `Maybe` gives an additional piece of information. The result of
@@ -123,18 +151,22 @@ We create the new `step` function by composing the above
 functions. However, since the result is wrapped in `Maybe`, we cannot
 use the regular function composition operators: `>>` and `<<`. Thus,
 we compose the functions using an auxiliary function `compose`:
+% SnakeStateRevisited.elm
 
       step : Event -> SnakeState -> Maybe SnakeState
       step = Foldpm.compose [handleNewGame, handleGameOver, handleDirection, handleTick]
 
 The `compose` function is defined as follows:
+% Foldpm.elm
 
       compose : [a -> b -> Maybe b] -> (a -> b -> Maybe b)
-      compose steps = case steps of
-        [] -> \_ _ -> Nothing
-        f::fs -> \a b -> case f a b of
-          Nothing -> (compose fs) a b
-          Just x -> Just x
+      compose steps =
+          case steps of
+              [] -> \_ _ -> Nothing
+              f::fs -> \a b ->
+                  case f a b of
+                      Nothing -> (compose fs) a b
+                      Just x -> Just x
 
 It takes one argument, which is a list of functions. It returns a
 function of the same type. The returned function is a composition of
@@ -149,18 +181,22 @@ There is one more issue that needs to be solved. The new signature of
 supposed to be. Thus, we cannot use `foldp` directly. Instead, we
 define the `stateSignal` function using an auxiliary function
 `foldpm`.
+% SnakeStateRevisited.elm
 
       stateSignal : Signal SnakeState
       stateSignal = foldpm step initialState eventSignal
 
 The `foldpm` function is defined as follows:
+% Foldpm.elm
 
       foldpm : (a -> b -> Maybe b) -> b -> Signal a -> Signal b
       foldpm stepm b sa =
-        let step event state = case stepm event state of
-          Nothing -> state
-          Just x -> x
-        in foldp step b sa
+          let step event state =
+                  case stepm event state of
+                      Nothing -> state
+                      Just x -> x
+          in
+              foldp step b sa
 
 It calls `foldp`, passing it in the first argument the auxiliary
 `step` function, defined in the let expression. The `step` function
@@ -176,6 +212,7 @@ The `handleNewGame`, `handleGameOver`, `handleDirection`,
 The revised game has its own `main` function defined in the
 [`SnakeRevisited`](SnakeRevisited.elm) module:
 
+% SnakeRevisited.elm
       module SnakeRevisited where
 
       import SnakeStateRevisited (..)
