@@ -2,10 +2,12 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
-main = lift (pageTemplate [content] "toc" "toc" "Chapter1HelloWorld") Window.width
+main = Signal.map (pageTemplate [content] "toc" "toc" "Chapter1HelloWorld") Window.width
 
-content = [markdown|
+content = Markdown.toElement """
 
 # Introduction
 
@@ -23,7 +25,7 @@ cost. With new Elm releases certain parts of this tutorial may become
 obsolete. I am planning to update the tutorial as new Elm versions
 appear, however you may expect a time lag between new Elm versions and
 new versions of this tutorial. This version of the tutorial targets
-Elm 0.13.
+Elm 0.14.1.
 
 I am not treating this tutorial as a finished work. You may expect its
 content to evolve and to be updated. Partly because of the Elm
@@ -35,7 +37,18 @@ the tutorial is located on
 [github](http://github.com/grzegorzbalcerek/elm-by-example) and you
 can open an issue there.
 
+The examples are available separately from
+[github](http://github.com/grzegorzbalcerek/ElmByExample).
+
 The [first](Chapter1HelloWorld.html) chapter will show you how to make
 simple Elm programs.
 
-|]
+"""
+{-
+ and as an
+Elm package. To install the package, you may run:
+
+      elm-package install grzegorzbalcerek/ElmByExample
+
+You should have the files installed inside the `elm-stuff` folder.
+-}

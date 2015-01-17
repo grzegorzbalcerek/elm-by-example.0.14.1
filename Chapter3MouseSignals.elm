@@ -2,10 +2,12 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
-main = lift (pageTemplate [content] "Chapter2FibonacciBars" "toc" "Chapter4WindowSignals") Window.width
+main = Signal.map (pageTemplate [content] "Chapter2FibonacciBars" "toc" "Chapter4WindowSignals") Window.width
 
-content = [markdown|
+content = Markdown.toElement """
 
 # Chapter 3 Mouse Signals
 
@@ -18,10 +20,15 @@ let’s see them in action. Take a look at the
 working example is available [here](MouseSignals1.html).
 
 % MouseSignals1.elm
+      module MouseSignals1 where
+
+
       import Mouse
+      import Signal (map)
+      import Text (asText)
 
 
-      main = lift asText Mouse.x
+      main = map asText Mouse.x
 
 Try running that program and notice what happens as you move your
 mouse pointer. The program shows the `x` coordinate of the mouse
@@ -42,15 +49,15 @@ a signal of `Int` values. We cannot show it directly on the screen,
 that is we cannot write `main = Mouse.x`, because such program would
 not compile. All our programs so far assigned to `main` values of type
 `Element`, but it is not the only possible type of the `main`
-function. The other possible type is `Signal Element`. In other words,
-Elm can display a static element, or a dynamic signal of elements.
+function. Another possible type is `Signal Element`. In other words
+Elm can display a dynamic signal of elements.
 
 We can use the `asText` function to turn an `Int` into an
 `Element`. But what we need is to turn a `Signal Int` into a `Signal
-Element`. How can we do that? By using the `lift` function! Here is
-its signature:
+Element`. How can we do that? By using the `map` function from the
+`Signal` module!  Here is its signature:
 
-      lift : (a -> b) -> Signal a -> Signal b
+      map : (a -> b) -> Signal a -> Signal b
 
 It takes a function and a signal, and applies the function to the
 values “carried” by the signal. In other words, it applies the
@@ -61,10 +68,11 @@ Elm allows using functions as operators, that is in the infix
 notation, by enclosing them in backsticks. We could thus define the
 `main` function in an alternative way as follows:
 
-      main = asText `lift` Mouse.x
+      main = asText `map` Mouse.x
 
 However, Elm provides already the `<~` operator that is equivalent to
-the `lift` function. Thus, we can also write:
+the `map` function. Thus, we can also write (provided we also import
+the `<~` operator from the `Signal` module):
 
       main = asText <~ Mouse.x
 
@@ -73,32 +81,38 @@ two signals combined together and displayed as a pair of mouse pointer
 coordinates. You can see it in action [here](MouseSignals2.html).
 
 % MouseSignals2.elm
+      module MouseSignals2 where
+
+
+      import Graphics.Element (Element)
       import Mouse
+      import Signal (map2)
+      import Text (asText)
 
 
       combine : a -> b -> Element
       combine a b = asText (a,b)
 
 
-      main = lift2 combine Mouse.x Mouse.y
+      main = map2 combine Mouse.x Mouse.y
 
-The `lift` function is not enough when we want to combine two signals
-into one. Luckily Elm provides the `lift2` function that let us do
+The `map` function is not enough when we want to combine two signals
+into one. Luckily Elm provides the `map2` function that let us do
 that. It has the following signature:
 
-      lift2 : (a -> b -> c) -> Signal a -> Signal b -> Signal c
+      map2 : (a -> b -> c) -> Signal a -> Signal b -> Signal c
 
 Our program merges the `Mouse.x` and `Mouse.y` (which obviously
-represents the mouse pointer *y* coordinates) signals using the
-`lift2` function. Elm also provides other similar functions: `lift3`,
-`lift4`, …, up to `lift8`. However, it also provides an alternative
-way of combining several signals into one. The last line of our
-program could have been written as follows:
+represents the mouse pointer *y* coordinates) signals using the `map2`
+function. Elm also provides other similar functions: `map3`, `map4`
+and `map5`. However, it also provides an alternative way of combining
+several signals into one. The last line of our program could have been
+written as follows (again, importing `~` would be necessary):
 
       main = combine <~ Mouse.x ~ Mouse.y
 
 What is going on here? We already know the `<~` operator, which is
-equivalent to the `lift` function. The `~` operator has the following
+equivalent to the `map` function. The `~` operator has the following
 signature:
 
       (~) : Signal (a -> b) -> Signal a -> Signal b
@@ -121,24 +135,30 @@ look at yet another program — *[MouseSignals3.elm](MouseSignals3.elm)*
 (the working program is available [here](MouseSignals3.html)):
 
 % MouseSignals3.elm
+      module MouseSignals3 where
+
+
+      import Graphics.Element (down, flow)
+      import List (map)
       import Mouse
+      import Signal ((~), (<~), sampleOn)
+      import Text (plainText)
 
 
-      showsignals a b c d e f g h =
+      showsignals a b c d e f g =
           flow
               down
               <|
                   map
                       plainText
                       [
-                          "Mouse.position: " ++ show a,
-                          "Mouse.x: " ++ show b,
-                          "Mouse.y: " ++ show c,
-                          "Mouse.clicks: " ++ show d,
-                          "Mouse.isDown: " ++ show e,
-                          "count Mouse.isDown: " ++ show f,
-                          "sampleOn Mouse.clicks Mouse.position: " ++ show g,
-                          "sampleOn Mouse.isDown Mouse.position: " ++ show h
+                          "Mouse.position: " ++ toString a,
+                          "Mouse.x: " ++ toString b,
+                          "Mouse.y: " ++ toString c,
+                          "Mouse.clicks: " ++ toString d,
+                          "Mouse.isDown: " ++ toString e,
+                          "sampleOn Mouse.clicks Mouse.position: " ++ toString f,
+                          "sampleOn Mouse.isDown Mouse.position: " ++ toString g
                       ]
 
 
@@ -149,19 +169,18 @@ look at yet another program — *[MouseSignals3.elm](MouseSignals3.elm)*
               ~ Mouse.y
               ~ Mouse.clicks
               ~ Mouse.isDown
-              ~ count Mouse.isDown
               ~ sampleOn Mouse.clicks Mouse.position
               ~ sampleOn Mouse.isDown Mouse.position
 
-The `showsignals` function presents a list of several (eight) values
-with descriptions. Each item on that list represents a signal. Signal
+The `showsignals` function presents a list of several values with
+descriptions. Each item on that list represents a signal. Signal
 values are “feeded” into the function using the `<~` and `~`
 operators.
 
-The `show` function used as the argument of the `map` function,
+The `toString` function used as the argument of the `map` function,
 converts any value to a `String`.
 
-      show : a -> String
+      toString : a -> String
 
 The first signal, `Mouse.position`, represents the mouse pointer
 coordinates as a pair of values. We have already seen the `Mouse.x`
@@ -180,10 +199,6 @@ the mouse button is released).
 The `Mouse.isDown` signal is a signal of boolean values indicating
 whether the mouse button is being pressed.
 
-The next signal uses the `count` function which converts a signal into
-a signal of `Int` values indicating how many events from the original
-signal have occurred.
-
 The last two signals use the `sampleOn` function, which samples the
 second signal whenever the first signal changes its value.
 
@@ -194,11 +209,7 @@ moments of when the mouse button was released, while the last signal
 represents mouse positions from the moments of both when the mouse
 button was pressed and relesed.
 
-The `count` and `sampleOn` functions are defined in the `Signal`
-module. The module provides various functions for signal
-manipulations.
-
 The [next](Chapter4WindowSignals.html) chapter presents signals
 defined in the `Window` module.
 
-|]
+"""

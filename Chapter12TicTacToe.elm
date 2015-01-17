@@ -2,16 +2,20 @@
 
 import Lib (..)
 import Window
+import Signal (..)
+import Markdown
+import Graphics.Element (..)
+import Graphics.Collage (..)
 
 content w = pageTemplate [ content1
                          , container w 510 middle picture1
                          , content2
-                         ] "Chapter12Paddle" "toc" "Chapter14Snake" w
-main = lift content Window.width
+                         ] "Chapter11Paddle" "toc" "Chapter13Snake" w
+main = content <~ Window.width
 
-content1 = [markdown|
+content1 = Markdown.toElement """
 
-# Chapter 13 Tic Tac Toe
+# Chapter 12 Tic Tac Toe
 
 This chapter presents a program implementing the Tic Tac Toe game. You
 can play it [here](TicTacToe.html) using your mouse to select the
@@ -27,30 +31,34 @@ The code is divided into three modules:
  * `TicTacToe`
 
 We start our analysis with the `TicTacToeModel` module defined in the
-*[TicTacToeModel.elm](TicTacToeModel.elm)* file. The module
-declaration is followed by several data type declarations.
+*[TicTacToeModel.elm](TicTacToeModel.elm)* file. The module contains
+several data type declarations.
 
 % TicTacToeModel.elm
       module TicTacToeModel where
 
 
-      data Player = O | X
+      import List ((::), all, filter, head, isEmpty, length, map, tail)
 
 
-      data Result = Draw | Winner Player
+      type Player = O | X
 
 
-      type Field = { col: Int, row: Int }
+      type Result = Draw | Winner Player
 
 
-      type Move = (Field,Player)
+      type alias Field = { col: Int, row: Int }
 
 
-      type Moves = [Move]
+      type alias Move = (Field,Player)
 
 
-      data GameState = FinishedGame Result Moves
-                     | NotFinishedGame Player Moves
+      type alias Moves = List Move
+
+
+      type GameState =
+            FinishedGame Result Moves
+          | NotFinishedGame Player Moves
 
 The `Player` data type represents the two players. The `Result` data
 type represents the result of the game — either a draw or a victory of
@@ -94,7 +102,7 @@ occupied, given the list of moves made so far.
 % TicTacToeModel.elm
 
       isFieldEmpty : Moves -> Field -> Bool
-      isFieldEmpty moves field = all (\move -> not (fst move == field)) moves
+      isFieldEmpty moves field = all (\\move -> not (fst move == field)) moves
 
 The function uses the `all` function, which takes a predicate function
 (a function that takes an argument and returns a boolean value) and a
@@ -113,24 +121,24 @@ The `subsequences` function is a helper function that works on lists,
 but is not available in the standard library `List` module.
 % TicTacToeModel.elm
 
-      subsequences : [a] -> [[a]]
+      subsequences : List a -> List (List a)
       subsequences lst =
           case lst of
               []  -> [[]]
               h::t -> let st = subsequences t
                       in
-                          st ++ map (\x -> h::x) st
+                          st ++ map (\\x -> h::x) st
 
 It returns all subsequences of a given list.
 
       > subsequences []
-      [[]] : [[a]]
+      [[]] : List (List a)
       > subsequences [1]
-      [[],[1]] : [[number]]
+      [[],[1]] : List (List number)
       > subsequences [1,2]
-      [[],[2],[1],[1,2]] : [[number]]
+      [[],[2],[1],[1,2]] : List (List number)
       > subsequences [1,2,4]
-      [[],[4],[2],[2,4],[1],[1,4],[1,2],[1,2,4]] : [[number]]
+      [[],[4],[2],[2,4],[1],[1,4],[1,2],[1,2,4]] : List (List number)
 
 Notice how the empty list `[]` and a non-empty list consisting of the
 head `h` and tail `t` are used as patterns in the `case` expression.
@@ -142,17 +150,17 @@ considering the list of moves made so far.
       playerWon : Player -> Moves -> Bool
       playerWon player =
           let fieldsAreInLine fields =
-                  all (\{col} -> col == 1) fields ||
-                  all (\{col} -> col == 2) fields ||
-                  all (\{col} -> col == 3) fields ||
-                  all (\{row} -> row == 1) fields ||
-                  all (\{row} -> row == 2) fields ||
-                  all (\{row} -> row == 3) fields ||
-                  all (\{col,row} -> col == row) fields ||
-                  all (\{col,row} -> col + row == 4) fields
+                  all (\\{col} -> col == 1) fields ||
+                  all (\\{col} -> col == 2) fields ||
+                  all (\\{col} -> col == 3) fields ||
+                  all (\\{row} -> row == 1) fields ||
+                  all (\\{row} -> row == 2) fields ||
+                  all (\\{row} -> row == 3) fields ||
+                  all (\\{col,row} -> col == row) fields ||
+                  all (\\{col,row} -> col + row == 4) fields
           in  subsequences
-                  >> filter (\x -> length x == 3)
-                  >> filter (all (\(_,p) -> p == player))
+                  >> filter (\\x -> length x == 3)
+                  >> filter (all (\\(_,p) -> p == player))
                   >> map (map fst)
                   >> filter fieldsAreInLine
                   >> isEmpty
@@ -351,8 +359,14 @@ functions.
       module TicTacToeView where
 
 
+      import Color (black, white)
+      import Graphics.Collage (circle, collage, filled, group, move, rect, rotate)
+      import Graphics.Element (Element, container, down, flow, layers, middle, right, spacer)
+      import Graphics.Input (button)
+      import List (map)
+      import Signal (Channel, channel, send)
+      import Text (plainText)
       import TicTacToeModel (..)
-      import Graphics.Input (..)
 
 The `drawLines` function draws the two vertical and two horizontal
 lines of the game board.
@@ -397,32 +411,37 @@ sees below the board.
       stateDescription state =
           case state of
             FinishedGame Draw _ -> "Game Over. Draw"
-            FinishedGame (Winner p) _ -> "Game Over. Winner: " ++ show p
-            NotFinishedGame p _ -> "Next move: " ++ show p
+            FinishedGame (Winner p) _ -> "Game Over. Winner: " ++ toString p
+            NotFinishedGame p _ -> "Next move: " ++ toString p
 
-The `newGameInput` function creates an `Input` element related to the
-“New Game” button. The `newGameButton` uses that input’s `handle` and
-the `button` function from the `Graphics.Input` module, to create a
-clickable button. The signal associated with the input will output a
-`()` event each time the button is clicked.
+The `newGameChannel` function creates a channel for sending messages
+in response to clicking the “New Game” button. The `newGameButton`
+creates a clickable button using the `button` function from the
+`Graphics.Input` module.
+
+      button : Message -> String -> Element
+
+The `Message` object is created using the `send` function, which takes
+the channel as one of its arguments
+
 % TicTacToeView.elm
 
-      newGameInput : Input ()
-      newGameInput = input ()
+      newGameChannel : Channel ()
+      newGameChannel = channel ()
 
 
       newGameButton : Element
-      newGameButton = button newGameInput.handle () "New Game"
+      newGameButton = button (send newGameChannel ()) "New Game"
 
 There are also two similar functions related to the “Undo” button.
 % TicTacToeView.elm
 
-      undoInput : Input ()
-      undoInput = input ()
+      undoChannel : Channel ()
+      undoChannel = channel ()
 
 
       undoButton : Element
-      undoButton = button undoInput.handle () "Undo"
+      undoButton = button (send  undoChannel ()) "Undo"
 
 The `view` function collects the complete view, by drawing the board
 lines and the player moves on top of each other, and the state
@@ -443,15 +462,17 @@ The [`TicTacToe`](TicTacToe.elm) module implements the remainder of the game.
       module TicTacToe where
 
 
+      import Graphics.Element (Element)
+      import Mouse
+      import Signal ((<~), Signal, foldp, mergeMany, sampleOn, subscribe)
       import TicTacToeModel (..)
       import TicTacToeView (..)
-      import Mouse
 
 The module creates several signals and combines them together. The
 following figure presents how the individual signals are combined
 together to produce the main game signal.
 
-|]
+"""
 
 sigBox a b c w x line = signalFunctionBox 14 18 50 a b c w x (line*100-300)
 sigVertU line x = sigVerticalLine 25 x (line*100-238)
@@ -462,9 +483,9 @@ sigArr line x = sigDownwardArrow x (line*100-265)
 sigVertArr line x = group [sigVert line x, sigArr line x ]
 
 picture1 = collage 700 510
-  [ sigBox "Signal ()" "newGameButtonSignal" "newGameInput.signal" 180 -240 5
+  [ sigBox "Signal ()" "newGameButtonSignal" "subscribe newGameChannel" 180 -240 5
   , sigBox "Signal (Int,Int)" "clickSignal" "sampleOn Mouse.clicks Mouse.position" 240 0 5
-  , sigBox "Signal ()" "undoButtonSignal" "undoInput.signal" 180 240 5
+  , sigBox "Signal ()" "undoButtonSignal" "subscribe undoChannel" 180 240 5
 
   , sigVertArr 4 -240
   , sigVertArr 4 0
@@ -490,14 +511,14 @@ picture1 = collage 700 510
   , sigBox "Signal Element" "main" "" 140 0 1
   ]
 
-content2 = [markdown|
+content2 = Markdown.toElement """
 
 The first three functions create the basic input signals that are then
 transformed into other signals. The `clickSignal` function creates a
 signal which outputs the mouse pointer position on every click. The
 `newGameButtonSignal` function returns the signal associated with
-`newGameInput`. The `undoButtonSignal` function returns the signal
-associated with `undoInput`.
+`newGameChannel`. The `undoButtonSignal` function returns the signal
+associated with `undoChannel`.
 % TicTacToe.elm
 
       clickSignal : Signal (Int,Int)
@@ -505,11 +526,11 @@ associated with `undoInput`.
 
 
       newGameButtonSignal : Signal ()
-      newGameButtonSignal = newGameInput.signal
+      newGameButtonSignal = subscribe newGameChannel
 
 
       undoButtonSignal : Signal ()
-      undoButtonSignal = undoInput.signal
+      undoButtonSignal = subscribe undoChannel
 
 The next three functions transform each of the above signals into a
 signal of state-transforming functions. Those signals have the type of
@@ -559,7 +580,7 @@ into one.
 % TicTacToe.elm
 
       inputSignal : Signal (GameState -> GameState)
-      inputSignal = merges [ moveSignal, newGameSignal, undoSignal ]
+      inputSignal = mergeMany [ moveSignal, newGameSignal, undoSignal ]
 
 The `gameStateSignal` uses the `foldp` function to modify the game state.
 % TicTacToe.elm
@@ -569,8 +590,7 @@ The `gameStateSignal` uses the `foldp` function to modify the game state.
 
 Recall the `foldp` signature.
 
-      > foldp
-      <function: foldp> : (a -> b -> b) -> b -> Signal a -> Signal b
+      foldp : (a -> b -> b) -> b -> Signal a -> Signal b
 
 In our case the input signal has the `Signal (GameState -> GameState)`
 type, thus `a` is `GameState -> GameState`. The output signal has the
@@ -583,8 +603,7 @@ argument to `foldp` needs to have the following signature:
 Well, that signature looks like a function application operator
 `(<|)` — we can thus use it in the `foldp` call.
 
-      > (<|)
-      <function> : (a -> b) -> a -> b
+      (<|) : (a -> b) -> a -> b
 
 So, the way how the `foldp` function works in our game is that it
 receives state-transforming functions as input, and applies each of
@@ -595,8 +614,8 @@ the `view` function from the `TicTacToeView` module.
 % TicTacToe.elm
 
       main : Signal Element
-      main = lift view gameStateSignal
+      main = view <~ gameStateSignal
 
-The [next](Chapter14Snake.html) chapter presents another game.
+The [next](Chapter13Snake.html) chapter presents another game.
 
-|]
+"""

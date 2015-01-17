@@ -2,14 +2,19 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
+import Graphics.Element (..)
+import Graphics.Collage (..)
+import Signal ((<~))
 
 content w = pageTemplate [text1,container w 820 middle picture1,text2]
-            "Chapter8RandomSignals" "toc" "Chapter10Calculator" w
-main = lift content Window.width
+            "Chapter7DelayedCircles" "toc" "Chapter9Calculator" w
+main = Signal.map content Window.width
 
-text1 = [markdown|
+text1 = Markdown.toElement """
 
-# Chapter 9 Circles
+# Chapter 8 Circles
 
 The next example, *[Circles.elm](Circles.elm)*, is a program which
 maintains state. Initially, the program only shows an empty
@@ -27,16 +32,21 @@ The code is divided into three modules:
 
 We start our analysis with the `CirclesModule` module, defined in the
 *[CirclesModel.elm](CirclesModel.elm)*, which starts with the usual
-module declaration followed by three type declarations:
+module declaration followed by imports and three type declarations:
 
 % CirclesModel.elm
       module CirclesModel where
 
 
-      type Position = { x: Int, y: Int }
+      import Color (Color, rgb)
+      import Time (Time)
+      import Random (generate, int, initialSeed)
 
 
-      type CircleSpec = {
+      type alias Position = { x: Int, y: Int }
+
+
+      type alias CircleSpec = {
                radius: Int,
                xv: Int,
                yv: Int,
@@ -45,15 +55,16 @@ module declaration followed by three type declarations:
            }
 
 
-      type Circle = {
+      type alias Circle = {
                position: Position,
                circleSpec: CircleSpec
            }
 
 The module defines three data types, that we will use in our
-program. Their definitions start with the `type` keyword followed by
-the type name. The `type` statement creates a type alias, that is, the
-type on the right hand side of the equals sign acquires a new name.
+program. Their definitions start with the `type alias` keywords
+followed by the type name. The `type alias` statement creates, a type
+alias, that is, the type on the right hand side of the equals sign
+acquires a new name.
 
 All of the data types are records. A record is a data structure
 consisting of one or more values. Each value in a record has a name
@@ -95,19 +106,127 @@ specifying a circle: its radius, its vertical and horizontal velocity
 `Circle` data type contains the circle specification (`CircleSpec`)
 and its position.
 
-The `CirclesModel` module defines a few functions, but instead of
-analyzing them now, we will now turn our attention to the
-`CirclesView` module. We will get back to the `CirclesModel` functions
-later. The `CirclesView` module, defined in the
-*[CirclesView.elm](CirclesView.elm)* file, starts with the module
-declaration and the import of the data types declared in the
-`CirclesModel` module.
+The `makeCircleSpec` function creates a new `CircleSpec` record given
+a `Time` value.
+
+% CirclesModel.elm
+
+      makeCircleSpec : Time -> CircleSpec
+      makeCircleSpec time =
+          let seed1 = initialSeed (round time)
+              (radius,seed2) = generate (int 10 30) seed1
+              (xv,seed3) = generate (int 10 50) seed2
+              (yv,seed4) = generate (int 10 50) seed3
+              (r,seed5) = generate (int 10 220) seed4
+              (g,seed6) = generate (int 10 220) seed5
+              (b,_) = generate (int 10 220) seed6
+          in
+              { radius = radius
+              , xv = xv
+              , yv = yv
+              , col = rgb r g b
+              , creationTime = time
+              }
+
+The `makeCircleSpec` function is using several functions from the
+`Random` module, which contains functions related to generating random
+values. The function generates random values using the `generate`
+function, which has the following type:
+
+      generate : Generator a -> Seed -> (a, Seed)
+
+Its first argument is generator, which produces random values of a
+certain type `a`. The `makeCircleSpec` function uses generators
+created by the `int` function, which takes two `Int` arguments
+defining a range of values and returns a generator of `Int` values
+from that range.
+
+      int : Int -> Int -> Generator Int
+
+Besides a generator, the `generator` function needs a `Seed` value to
+produce a result. A `Seed` value can be created by the `initialSeed`
+function, which takes an `Int` value.
+
+      initialSeed : Int -> Seed
+
+The `generate` function returns a random value produced by the
+generator and a new seed. If we try to call the `generate` function
+with the same generator and seed, we will always get the same return
+value (the REPL output is a little verbose, showing the internals of
+the seed):
+
+      > generate (int 10 18) (initialSeed 12345)
+      (12,{ next = <function>, range = <function>, split = <function>, state = State 494012844 40692 })
+          : ( Int
+            , { next : Random.State -> ( Int, Random.State )
+              , range : Random.State -> ( Int, Int )
+              , split : Random.State -> ( Random.State, Random.State )
+              , state : Random.State
+              }
+            )
+      > generate (int 10 18) (initialSeed 12345)
+      (12,{ next = <function>, range = <function>, split = <function>, state = State 494012844 40692 })
+          : ( Int
+            , { next : Random.State -> ( Int, Random.State )
+              , range : Random.State -> ( Int, Int )
+              , split : Random.State -> ( Random.State, Random.State )
+              , state : Random.State
+              }
+            )
+
+That is not very useful if we really need randomness. We can, however,
+use the seed returned by `generate` as the input seed in the next call
+to `generate`:
+
+      > result = generate (int 10 18) (initialSeed 12345)
+      (12,{ next = <function>, range = <function>, split = <function>, state = State 494012844 40692 })
+          : ( Int
+            , { next : Random.State -> ( Int, Random.State )
+              , range : Random.State -> ( Int, Int )
+              , split : Random.State -> ( Random.State, Random.State )
+              , state : Random.State
+              }
+            )
+      > generate (int 10 18) (snd result)
+      (18,{ next = <function>, range = <function>, split = <function>, state = State 1991225964 1655838864 })
+          : ( Int
+            , { next : Random.State -> ( Int, Random.State )
+              , range : Random.State -> ( Int, Int )
+              , split : Random.State -> ( Random.State, Random.State )
+              , state : Random.State
+              }
+            )
+
+The `makeCircleSpec` function uses a time value (recall that `Time` is
+an alias of `Float`) to get the initial seed. It then calls `generate`
+several times in order to calculate the circle specification elements,
+passing previously calculated seeds as input to the subsequent
+`generate` calls. In order to calculate the circle color, it uses the
+`rgb` function, which takes three `Int` values representing the
+primary colors: red, green and blue.
+
+      > makeCircleSpec 12345.0
+      { col = RGBA 34 33 99 1, creationTime = 12345, radius = 18, xv = 10, yv = 34 }
+          : { col : Color.Color
+            , creationTime : Float
+            , radius : Int
+            , xv : Int
+            , yv : Int
+            }
+
+We will now turn our attention to the `CirclesView` module. It is
+defined in the *[CirclesView.elm](CirclesView.elm)* file and it starts
+as usual with the module declaration and a list of imports.
 
 % CirclesView.elm
       module CirclesView where
 
 
-      import CirclesModel (Position, CircleSpec, Circle)
+      import CirclesModel (Circle, CircleSpec, Position)
+      import Color (black, red, green)
+      import Graphics.Collage (circle, collage, filled, move, outlined, rect, solid)
+      import Graphics.Element (layers)
+      import List (map)
 
 The `boundingBox` function draws a square of a given width and
 height. The `outlined` function draws the square border using the line
@@ -190,18 +309,18 @@ its beginning:
       module Circles where
 
 
-      import Color
-      import Time (..)
-      import Mouse
-      import Random (range)
       import CirclesModel (..)
       import CirclesView (..)
+      import List ((::), map)
+      import Mouse
+      import Signal (Signal, (<~), (~), foldp, keepIf, sampleOn)
+      import Time (Time, fps, timestamp)
 
 The module creates several signals and combines them together. The
 following figure presents the relations between the individual
 signals.
 
-|]
+"""
 
 sigBox a b c w x line = signalFunctionBox 14 18 50 a b c w x (line*100-300-50)
 sigVertU line x = sigVerticalLine 25 x (line*100-238-50)
@@ -212,40 +331,31 @@ sigArr line x = sigDownwardArrow x (line*100-265-50)
 sigVertArr line x = group [sigVert line x, sigArr line x ]
 
 picture1 = collage 900 810
-  [ sigBox "Signal (Int,Int)" "clickPositionsSignal" "sampleOn Mouse.clicks Mouse.position" 240 -100 7
+  [ sigBox "Signal (Int,Int)" "clickPositionsSignal" "sampleOn Mouse.clicks Mouse.position" 240 -150 7
 
-  , sigVertArr 6 -100
+  , sigVertArr 6 -150
 
-  , sigBox "Signal (Int,Int)" "inBoxClickPositionsSignal" "Signal.keepIf" 200 -100 6
-  , sigBox "Signal Time" "clockSignal" "Time.timestamp, Time.fps" 200 300 6
+  , sigBox "Signal (Int,Int)" "inBoxClickPositionsSignal" "Signal.keepIf" 200 -150 6
+  , sigBox "Signal Time" "clockSignal" "Time.timestamp, Time.fps" 200 150 6
 
-  , sigVertArr 5 -100
-  , sigVertArr 5 300
-  , sigVertD 5 -300, sigArr 5 -300
-  , sigVertD 5 100, sigArr 5 100
-  , sigVertD 5 250, sigArr 5 250
-  , sigHoriz 650 5 -75
-  , sigHoriz 100 5 350
+  , sigVertU 5 -150
+  , sigVertU 5 150
+  , sigHoriz 100 5 -100
+  , sigHoriz 100 5 100
+  , sigVertD 5 -50, sigArr 5 -50
+  , sigVertD 5 50, sigArr 5 50
 
-  , sigBox "Signal Int" "radiusSignal" "Random.range" 170 -300 5
-  , sigBox "Signal Int" "velocitySignal" "Random.range" 170 -100 5
-  , sigBox "Signal Color" "colorSignal" "Random.range" 170 100 5
-  , sigBox "Signal Time" "creationTimeSignal" "Signal.sampleOn" 170 300 5
+  , sigBox "Signal Time" "creationTimeSignal" "Signal.sampleOn" 170 0 5
 
-  , sigVertU 4 -300
-  , sigVertU 4 -100
-  , sigVertU 4 100
-  , sigVertU 4 300
-  , sigVertD 4 0, sigArr 4 0
-  , sigHoriz 600 4 0
-  , sigVerticalLine 200 -400 (4*100-250-50)
+  , sigVertArr 4 0
+  , sigVerticalLine 200 -150 (4*100-250-50)
 
   , sigBox "Signal CircleSpec" "newCircleSpecSignal" "" 200 0 4
 
   , sigVertArr 3 0
-  , sigHoriz 350 3 -225
+  , sigHoriz 100 3 -100
   , sigVertD 3 -50, sigArr 3 -50
-  , sigVerticalLine 400 400 (3*100-250-50)
+  , sigVerticalLine 400 150 (3*100-250-50)
 
   , sigBox "Signal Circle" "newCircleSignal" "" 200 0 3
 
@@ -254,7 +364,7 @@ picture1 = collage 900 810
   , sigBox "Signal [Circle]" "allCirclesSpecSignal" "foldp" 200 0 2
 
   , sigVertArr 1 0
-  , sigHoriz 350 1 225
+  , sigHoriz 100 1 100
   , sigVertD 1 50, sigArr 1 50
 
   , sigBox "Signal [Circle]" "circlesSignal" "" 200 0 1
@@ -265,7 +375,7 @@ picture1 = collage 900 810
 
   ]
 
-text2 = [markdown|
+text2 = Markdown.toElement """
 
 The first signal from the `Circles` module is created by the
 `clockSignal` function. It periodically outputs a timestamp. The rate
@@ -274,7 +384,7 @@ second) from the `Time` module.
 % Circles.elm
 
       clockSignal : Signal Time
-      clockSignal = lift fst (timestamp (fps 50))
+      clockSignal = fst <~ timestamp (fps 50)
 
 The signal created by the `clickPositionsSignal` function outputs the mouse
 pointer position on every click.
@@ -287,7 +397,7 @@ The `inBoxClickPositionsSignal` function takes the width and height as
 arguments and creates a signal, that filters the events from the
 `clickPositionsSignal` to only output those that represent positions
 inside the bounding box of the given width and height. The `keepIf`
-function from the standard `Signals` module is used for filtering the
+function from the standard `Signal` module is used for filtering the
 events.
 % Circles.elm
 
@@ -297,47 +407,10 @@ events.
           in
               keepIf positionInBox (0, 0) clickPositionsSignal
 
-When the user clicks inside the bounding box, the `Circles` program is
-supposed to create a new circle. Several circle properties are
-generated randomly using the `Random.range` function. The next couple
-of signals represent those various circle properties.
-
-The `radiusSignal` function produces a signal of values, each of which
-represent the radius of a new, to-be-created circle.
-% Circles.elm
-
-      radiusSignal : Int -> Int -> Signal Int
-      radiusSignal w h =
-          range 10 30 (inBoxClickPositionsSignal w h)
-
-The `velocitySignal` function generates a signal of values representing the
-vertical or horizontal velocity of the circle.
-% Circles.elm
-
-      velocitySignal : Int -> Int -> Signal Int
-      velocitySignal w h =
-          range 10 50 (inBoxClickPositionsSignal w h)
-
-The `colorSignal` function generates a signal of values representing the circle
-color. It combines three auxiliary signals, each of which represent
-one of the three basic colors (red, green, blue), by means of the
-`rgb` function from the `Color` module. The `rgb` function takes three
-`Int` values and returns a color.
-% Circles.elm
-
-      colorSignal : Int -> Int -> Signal Color
-      colorSignal w h =
-          let
-              redSignal = range 0 220 (inBoxClickPositionsSignal w h)
-              greenSignal = range 0 220 (inBoxClickPositionsSignal w h)
-              blueSignal = range 0 220 (inBoxClickPositionsSignal w h)
-          in
-              lift3 rgb redSignal greenSignal blueSignal
-
-The `creationTimeSignal` function produces a signal representing the creation
-times of the circles. This is not a random signal. It is created by
-sampling (using the `sampleOn` function) the signal produced by the
-`clockSignal` function on the events carried on by the signal from the
+The `creationTimeSignal` function produces a signal representing the
+creation times of the circles. It is created by sampling (using the
+`sampleOn` function) the signal produced by the `clockSignal` function
+on the events carried on by the signal from the
 `inBoxClickPositionsSignal` function.
 % Circles.elm
 
@@ -351,14 +424,7 @@ a signal representing the specifications of the new circles.
 
       newCircleSpecSignal : Int -> Int -> Signal CircleSpec
       newCircleSpecSignal w h =
-          let makeCircleSpec r xv yv c t = { radius = r, xv = xv, yv = yv, col = c, creationTime = t }
-          in
-              makeCircleSpec
-                  <~ radiusSignal w h
-                  ~ velocitySignal w h
-                  ~ velocitySignal w h
-                  ~ colorSignal w h
-                  ~ creationTimeSignal w h
+          makeCircleSpec <~ creationTimeSignal w h
 
 A full circle representation consists of its specification and its
 position. The `newCircleSignal` function produces a signal
@@ -382,7 +448,7 @@ the user clicked inside the bounding box. After each such click, we
 want to add the new circle to a list of previous circles (our list is
 empty at the beginning). New circles are represented by a signal of
 type `Signal Circle`. We now want to have a signal of type `Signal
-[Circle]`, which contains a list of all circles created so far.
+(List Circle)`, which contains a list of all circles created so far.
 
 We can use the `foldp` function from the `Signal` module to maintain
 state in Elm programs. The signature of that function looks as follows:
@@ -419,17 +485,17 @@ and a list — and returns a new list consisting of the new value
 prepended to the list.
 
       > 1 :: []
-      [1] : [number]
+      [1] : List number
       > 2 :: [1]
-      [2,1] : [number]
+      [2,1] : List number
       > 3 :: [2,1]
-      [3,2,1] : [number]
+      [3,2,1] : List number
 
 We can thus use the `::` operator as the first argument to our `foldp`
 call:
 % Circles.elm
 
-      allCirclesSpecSignal : Int -> Int -> Signal [Circle]
+      allCirclesSpecSignal : Int -> Int -> Signal (List Circle)
       allCirclesSpecSignal w h =
           foldp (::) [] (newCircleSignal w h)
 
@@ -510,7 +576,7 @@ partially applied with the appropriate parameters, through a list of
 `Circle` values.
 % Circles.elm
 
-      positionedCircles : Int -> Int -> Float -> [Circle] -> [Circle]
+      positionedCircles : Int -> Int -> Float -> List Circle -> List Circle
       positionedCircles w h time circles =
           map (positionedCircle w h time) circles
 
@@ -527,7 +593,7 @@ positions change while time passes. This is the job of the
 `clockSignal` and `allCirclesSpecSignal`.
 % Circles.elm
 
-      circlesSignal : Int -> Int -> Signal [Circle]
+      circlesSignal : Int -> Int -> Signal (List Circle)
       circlesSignal w h = positionedCircles w h <~ clockSignal
                                                  ~ allCirclesSpecSignal w h
 
@@ -543,7 +609,7 @@ program signal, that is rendered by Elm’s runtime.
 
 
 So far we have used signals from the `Mouse` module to get mouse
-related input. The [next](Chapter10Calculator.html) chapter presents an
+related input. The [next](Chapter9Calculator.html) chapter presents an
 alternative way of processing mouse events.
 
-|]
+"""

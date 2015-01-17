@@ -1,0 +1,14 @@
+{
+    "version": "1.0.0",
+    "summary": "Elm by Example",
+    "repository": "https://github.com/grzegorzbalcerek/elm-by-example.git",
+    "license": "Creative Commons Attribution-ShareAlike 4.0 International License",
+    "source-directories": [
+        "src"
+    ],
+    "exposed-modules": [],
+    "dependencies": {
+        "elm-lang/core": "1.1.0 <= v < 2.0.0",
+        "evancz/elm-markdown": "1.1.1 <= v < 2.0.0"
+    }
+}

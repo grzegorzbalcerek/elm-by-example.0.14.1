@@ -3,12 +3,19 @@
 import Lib (..)
 import Window
 import Text
+import Text (..)
+import Signal
+import Markdown
+import Graphics.Element (..)
+import Graphics.Collage (..)
+import Signal ((<~))
+import Color (white, black)
 
 content w = pageTemplate [content1,container w 490 middle picture1,content2,container w 310 middle picture2,content3]
             "Chapter4WindowSignals" "toc" "Chapter6TimeSignals" w
-main = lift content Window.width
+main = Signal.map content Window.width
 
-content1 = [markdown|
+content1 = Markdown.toElement """
 
 # Chapter 5 Eyes
 
@@ -34,6 +41,11 @@ We start our analysis with the `EyesView` module defined in the
         the eyes.
       -}
       module EyesView where
+
+
+      import Color (black, white)
+      import Graphics.Collage (Form, collage, filled, group, move, moveX, oval)
+      import Graphics.Element (Element)
 
 
       eyeBorder : Float -> Float -> Form
@@ -112,7 +124,7 @@ and let’s solve the problem of calculating the pupil coordinate under
 the assumption, that the mouse pointer is located within that
 quoter. Consider the following picture.
 
-|]
+"""
 
 picture1 = collage 680 480
   [ outlined defaultLine (rect 600 400)
@@ -120,29 +132,29 @@ picture1 = collage 680 480
   , filled white (rect 680 80) |> moveY -241
   , filled white (rect 80 480) |> moveX -341
   , outlined (dotted black) (rect 500 300) |> move (-50,-50)
-  , toForm (toText "R’" |> Text.height 30 |> leftAligned) |> move (200,-220)
-  , toForm (toText "R’’" |> Text.height 30 |> leftAligned) |> move (-320,100)
-  , toForm (toText "R" |> Text.height 30 |> leftAligned) |> move (210,100)
+  , toForm (fromString "R’" |> Text.height 30 |> leftAligned) |> move (200,-220)
+  , toForm (fromString "R’’" |> Text.height 30 |> leftAligned) |> move (-320,100)
+  , toForm (fromString "R" |> Text.height 30 |> leftAligned) |> move (210,100)
   , filled black (circle 4) |> move (-300,-200)
-  , toForm (toText "O" |> Text.height 30 |> leftAligned) |> move (-320,-200)
+  , toForm (fromString "O" |> Text.height 30 |> leftAligned) |> move (-320,-200)
   , filled black (circle 4) |> move (300,200)
-  , toForm (toText "C" |> Text.height 30 |> leftAligned) |> move (320,200)
+  , toForm (fromString "C" |> Text.height 30 |> leftAligned) |> move (320,200)
   , filled black (circle 4) |> move (300,-200)
-  , toForm (toText "C’" |> Text.height 30 |> leftAligned) |> move (320,-200)
+  , toForm (fromString "C’" |> Text.height 30 |> leftAligned) |> move (320,-200)
   , filled black (circle 4) |> move (-300,200)
-  , toForm (toText "C’’" |> Text.height 30 |> leftAligned) |> move (-320,200)
+  , toForm (fromString "C’’" |> Text.height 30 |> leftAligned) |> move (-320,200)
   , traced defaultLine (path [(-300,-200),(300,0)])
   , filled black (circle 4) |> move (300,0)
-  , toForm (toText "A" |> Text.height 30 |> leftAligned) |> move (320,0)
+  , toForm (fromString "A" |> Text.height 30 |> leftAligned) |> move (320,0)
   , filled black (circle 4) |> move (225,-25)
-  , toForm (toText "M" |> Text.height 30 |> leftAligned) |> move (225,-43)
+  , toForm (fromString "M" |> Text.height 30 |> leftAligned) |> move (225,-43)
   , filled black (circle 4) |> move (137,-54)
-  , toForm (toText "B" |> Text.height 30 |> leftAligned) |> move (137,-74)
+  , toForm (fromString "B" |> Text.height 30 |> leftAligned) |> move (137,-74)
   , filled black (circle 4) |> move (60,-80)
-  , toForm (toText "P" |> Text.height 30 |> leftAligned) |> move (60,-100)
+  , toForm (fromString "P" |> Text.height 30 |> leftAligned) |> move (60,-100)
   ]
 
-content2 = [markdown|
+content2 = Markdown.toElement """
 
 Point *O* is the center of the eye, and the *R’R’’* arc is the
 internal eye border. The *OC’CC’’* rectangle is the area where we
@@ -254,7 +266,7 @@ area. Each eye will fill half of the available area. We will thus have
 8 quaters of an eye that we have to handle, as illustrated on the
 following picture.
 
-|]
+"""
 
 --    xB²×yR² + yB²×xR² = xR²×yR² ①
 --    xB²×yR² + xB²×xR²×yM²/xM² = xR²×yR²
@@ -276,7 +288,7 @@ picture2 = collage 502 302
   , traced (dotted black) (path [(125,-150),(125,150)])
   ]
 
-content3 = [markdown|
+content3 = Markdown.toElement """
 
 Thus, the *xC* size will be equal to one-fourth of the window width,
 and *yC* will be equal to half of the window height. The *xR* and *yR*
@@ -299,15 +311,15 @@ which area of the screen the mouse pointer is. The function returns a
             (xPr,yPr) =
                 if xM >= 3*xC
                     then calculateP (xR,yR) (xC,yC) (xM-3*xC,yM)
-                             |> \(xP,yP) -> (xP+xC, yP * sign yM)
+                             |> \\(xP,yP) -> (xP+xC, yP * sign yM)
                     else calculateP (xR,yR) (3*xC,yC) (3*xC-xM,yM)
-                        |> \(xP,yP) -> (xC-xP, yP * sign yM)
+                        |> \\(xP,yP) -> (xC-xP, yP * sign yM)
             (xPl,yPl) =
                 if xM >= xC
                     then calculateP (xR,yR) (3*xC,yC) (xM-xC,yM)
-                             |> \(xP,yP) -> (xP-xC, yP * sign yM)
+                             |> \\(xP,yP) -> (xP-xC, yP * sign yM)
                     else calculateP (xR,yR) (xC,yC) (-xM+xC,yM)
-                             |> \(xP,yP) -> (-xP-xC, yP * sign yM)
+                             |> \\(xP,yP) -> (-xP-xC, yP * sign yM)
         in
             (xPl,yPl,xPr,yPr)
 
@@ -315,13 +327,17 @@ What is left is the `Eyes` module that assembles the program modules
 together:
 
 % Eyes.elm
-      import Mouse
-      import Window
-      import EyesView (..)
+      module Eyes where
+
+
       import EyesModel (..)
+      import EyesView (..)
+      import Mouse
+      import Signal
+      import Window
 
 
-      main = lift2 eyes Window.dimensions Mouse.position
+      main = Signal.map2 eyes Window.dimensions Mouse.position
 
 
       eyes (w,h) (x,y) = eyesView (w,h) (pupilsCoordinates (w,h) (x,y))
@@ -336,4 +352,4 @@ calculations for given window dimensions and mouse positions.
 The [next](Chapter6TimeSignals.html) chapter introduces time related
 signals.
 
-|]
+"""

@@ -2,14 +2,16 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
 content w = pageTemplate [content1]
-            "Chapter11KeyboardSignals" "toc" "Chapter13TicTacToe" w
-main = lift content Window.width
+            "Chapter10KeyboardSignals" "toc" "Chapter12TicTacToe" w
+main = Signal.map content Window.width
 
-content1 = [markdown|
+content1 = Markdown.toElement """
 
-# Chapter 12 Paddle
+# Chapter 11 Paddle
 
 Now that we know keyboard signals, we will use them to create a game.
 The *[Paddle.elm](Paddle.elm)* program is a game. The player uses the
@@ -23,9 +25,14 @@ The code starts with the `Paddle` module declaration and a list of imports.
       module Paddle where
 
 
-      import Window
-      import Text as T
+      import Color (blue, green, orange, red, white)
+      import Graphics.Collage (Form, circle, collage, filled, group, move, moveY, rect)
+      import Graphics.Element (Element, container, empty, layers, middle)
       import Keyboard
+      import Signal ((<~), Signal, foldp, merge)
+      import Text as T
+      import Time (Time, fps)
+      import Window
 
 After the imports, four functions which draw various elements of the
 game view are defined. The `borders` function draws the blue wall by
@@ -63,7 +70,7 @@ to the user when the game is over.
 
       gameOver : Element
       gameOver =
-          T.toText "Game Over"
+          T.fromString "Game Over"
                |> T.color red
                |> T.bold
                |> T.height 60
@@ -73,7 +80,7 @@ to the user when the game is over.
 The `State` type represents the state of the game.
 % Paddle.elm
 
-      type State =
+      type alias State =
           {
               x: Float,
               y: Float,
@@ -128,7 +135,7 @@ a data type representing events from both signals. The `Event` data
 type represents the events.
 % Paddle.elm
 
-      data Event = Tick Time | PaddleDx Int
+      type Event = Tick Time | PaddleDx Int
 
 The `Tick` constructor takes a `Time` value as parameter and creates
 an event representing a time-based tick. The `PaddleDx` constructor
@@ -140,7 +147,7 @@ standard library `fps` function.
 % Paddle.elm
 
       clockSignal : Signal Event
-      clockSignal = lift Tick <| fps 100
+      clockSignal = Tick <~ fps 100
 
 The `keyboardSignal` function uses the `Keyboard.arrows` signal to
 create a signal of keyboard-based events. Only the `x` members from
@@ -151,7 +158,7 @@ events: `-1`, `0`, or `1`.
 % Paddle.elm
 
       keyboardSignal : Signal Event
-      keyboardSignal = lift (.x >> PaddleDx) Keyboard.arrows
+      keyboardSignal = (.x >> PaddleDx) <~ Keyboard.arrows
 
 The `eventSignal` merges both signal into one combined signal.
 % Paddle.elm
@@ -232,7 +239,7 @@ producing the final game signal that is rendered on the screen.
 % Paddle.elm
 
       main : Signal Element
-      main = lift view gameSignal
+      main = view <~ gameSignal
 
 In order to transform the game state, we have used a monolitic `step`
 function, that reacts to each possible combination of input event and
@@ -240,7 +247,7 @@ current state. The solution works, but it has the disadvantage that
 the function which transforms the state may become big and difficult
 to maintain for larger programs. We will explore alternatives to that
 approach in the subsequent chapters. The
-[next](Chapter13TicTacToe.html) chapter presents a program which uses
+[next](Chapter12TicTacToe.html) chapter presents a program which uses
 an alternative approach.
 
-|]
+"""

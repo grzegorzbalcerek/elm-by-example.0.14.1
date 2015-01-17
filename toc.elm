@@ -3,10 +3,12 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
-main = lift (pageTemplate [content] "index" "index" "Introduction") Window.width
+main = Signal.map (pageTemplate [content] "index" "index" "Introduction") Window.width
 
-content = [markdown|
+content = Markdown.toElement """
 
 # Table of contents
 
@@ -18,13 +20,12 @@ content = [markdown|
 #### [Chapter 5 Eyes](Chapter5Eyes.html)
 #### [Chapter 6 Time Signals](Chapter6TimeSignals.html)
 #### [Chapter 7 Delayed Circles](Chapter7DelayedCircles.html)
-#### [Chapter 8 Random Signals](Chapter8RandomSignals.html)
-#### [Chapter 9 Circles](Chapter9Circles.html)
-#### [Chapter 10 Calculator](Chapter10Calculator.html)
-#### [Chapter 11 Keyboard Signals](Chapter11KeyboardSignals.html)
-#### [Chapter 12 Paddle](Chapter12Paddle.html)
-#### [Chapter 13 Tic Tac Toe](Chapter13TicTacToe.html)
-#### [Chapter 14 Snake](Chapter14Snake.html)
-#### [Chapter 15 Snake Revisited](Chapter15SnakeRevisited.html)
+#### [Chapter 8 Circles](Chapter8Circles.html)
+#### [Chapter 9 Calculator](Chapter9Calculator.html)
+#### [Chapter 10 Keyboard Signals](Chapter10KeyboardSignals.html)
+#### [Chapter 11 Paddle](Chapter11Paddle.html)
+#### [Chapter 12 Tic Tac Toe](Chapter12TicTacToe.html)
+#### [Chapter 13 Snake](Chapter13Snake.html)
+#### [Chapter 14 Snake Revisited](Chapter14SnakeRevisited.html)
 
-|]
+"""

@@ -2,12 +2,14 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
-main = lift (pageTemplate [content] "Chapter10Calculator" "toc" "Chapter12Paddle") Window.width
+main = Signal.map (pageTemplate [content] "Chapter9Calculator" "toc" "Chapter11Paddle") Window.width
 
-content = [markdown|
+content = Markdown.toElement """
 
-# Chapter 11 Keyboard Signals
+# Chapter 10 Keyboard Signals
 
 The `Keyboard` module defines functions for dealing with keyboard
 input. Elm defines the `KeyCode` type as an alias for `Int` and
@@ -39,10 +41,15 @@ codes. [Try](KeyboardSignals1.html) the
 action:
 
 % KeyboardSignals1.elm
+      module KeyboardSignals1 where
+
+
       import Keyboard
+      import Signal ((<~))
+      import Text (asText)
 
 
-      main = lift asText Keyboard.keysDown
+      main = asText <~ Keyboard.keysDown
 
 The `lastPressed` function returns a signal which provides the code of
 the last pressed key — even when the key is not currently being
@@ -51,10 +58,15 @@ pressed any more. Check it out using the
 [here](KeyboardSignals2.html):
 
 % KeyboardSignals2.elm
+      module KeyboardSignals2 where
+
+
       import Keyboard
+      import Signal ((<~))
+      import Text (asText)
 
 
-      main = lift asText Keyboard.lastPressed
+      main = asText <~ Keyboard.lastPressed
 
 The `isDown` function takes a key code as its argument and returns a
 boolean signal indicating whether the given key is currently being
@@ -65,11 +77,16 @@ for certain special keys: `shift`, `ctrl`, `space` and
 pressing the *A* key:
 
 % KeyboardSignals3.elm
-      import Keyboard
+      module KeyboardSignals3 where
+
+
       import Char
+      import Keyboard
+      import Signal ((<~))
+      import Text (asText)
 
 
-      main = lift asText (Keyboard.isDown (Char.toCode 'A'))
+      main = asText <~ (Keyboard.isDown (Char.toCode 'A'))
 
 The `directions` function is useful for building games. It takes
 four key codes as arguments and returns a signal of `{ x: Int, y: Int
@@ -88,15 +105,20 @@ member in a similar way. [Run](KeyboardSignals4.html) the
 pressing the *Q*, *A*, *O* and *P* keys in various combinations:
 
 % KeyboardSignals4.elm
+      module KeyboardSignals4 where
+
+
       import Keyboard
+      import Signal ((<~))
+      import Text (asText)
 
 
-      main = lift asText (Keyboard.directions 81 65 79 80)
+      main = asText <~ (Keyboard.directions 81 65 79 80)
 
 There are also two helper functions defined in terms of `directions`:
 `wasd` and `arrows`.
 
-The [next](Chapter12Paddle.html) chapter presents a game which uses
+The [next](Chapter11Paddle.html) chapter presents a game which uses
 keyboard as input.
 
-|]
+"""

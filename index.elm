@@ -1,4 +1,5 @@
 -- -*- coding: utf-8; -*-
+module Index where
 
 import Lib (..)
 import Window
@@ -11,12 +12,17 @@ import CirclesView
 import Text (..)
 import Text
 import Graphics.Element
+import Graphics.Element (..)
+import Graphics.Collage (..)
+import Color (..)
 import CalculatorView
 import CalculatorModel
+import Signal
+import Markdown
 
-version = "Built on 2014-11-12 using Elm 0.13."
+version = "Built on 2015-01-16 using Elm 0.14.1."
 
-main = lift content Window.width
+main = Signal.map content Window.width
 
 content w = pageTemplate [ spacer 30 30
                          , title
@@ -28,18 +34,18 @@ content w = pageTemplate [ spacer 30 30
                          , container w 30 middle (plainText version)
                          ] "" "" "toc" w
 
-title = toText "Elm by Example" |>
+title = fromString "Elm by Example" |>
         bold |>
         Text.height 60 |>
         centered
 
-author = toText "Grzegorz Balcerek" |>
+author = fromString "Grzegorz Balcerek" |>
          bold |>
          Text.height 40 |>
          centered
 
 tocLink : Element
-tocLink = [markdown| [Continue to the Table of Contents](toc.html) |]
+tocLink = Markdown.toElement """ [Continue to the Table of Contents](toc.html) """
 
 snakeState = { delta = { dx = 1, dy = 0 }, food = Just { x = 11, y = 1 }, gameOver = False, snake = { back = [{ x = -5, y = 1 },{ x = -6, y = 1 },{ x = -7, y = 1 },{ x = -8, y = 1 },{ x = -9, y = 1 },{ x = -10, y = 1 },{ x = -11, y = 1 },{ x = -11, y = 0 },{ x = -11, y = -1 },{ x = -11, y = -2 },{ x = -11, y = -3 },{ x = -11, y = -4 },{ x = -11, y = -5 },{ x = -11, y = -6 },{ x = -10, y = -6 },{ x = -9, y = -6 },{ x = -8, y = -6 }], front = [{ x = 13, y = -6 },{ x = 12, y = -6 },{ x = 11, y = -6 },{ x = 10, y = -6 },{ x = 9, y = -6 },{ x = 8, y = -6 },{ x = 7, y = -6 },{ x = 6, y = -6 },{ x = 5, y = -6 },{ x = 4, y = -6 },{ x = 3, y = -6 },{ x = 2, y = -6 },{ x = 1, y = -6 },{ x = 0, y = -6 },{ x = -1, y = -6 },{ x = -2, y = -6 },{ x = -3, y = -6 },{ x = -4, y = -6 },{ x = -5, y = -6 },{ x = -6, y = -6 },{ x = -7, y = -6 }] }, ticks = 2076 }
 

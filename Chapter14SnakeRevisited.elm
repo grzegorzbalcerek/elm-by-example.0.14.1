@@ -2,31 +2,39 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
 content w = pageTemplate [content1]
-            "Chapter14Snake" "toc" "" w
-main = lift content Window.width
+            "Chapter13Snake" "toc" "" w
+main = Signal.map content Window.width
 
 {-
 % SnakeStateRevisited.elm
       module SnakeStateRevisited where
 
 
-      import SnakeModel (..)
-      import SnakeSignals (..)
       import Foldpm
       import Foldpm (..)
+      import List (head)
+      import Signal ((<~), Signal)
+      import SnakeModel (..)
+      import SnakeSignals (..)
+
 -}
 
 {-
 % Foldpm.elm
       module Foldpm where
 
+
+      import Signal (Signal, foldp)
+
 -}
 
-content1 = [markdown|
+content1 = Markdown.toElement """
 
-# Chapter 15 Snake Revisited
+# Chapter 14 Snake Revisited
 
 The previous chapter presented a program which implemented the game of
 snake. That program used a monolitic `step` function, that reacted to
@@ -99,7 +107,7 @@ received. It returns `Nothing` otherwise.
                   Just { state | delta <- if abs newDelta.dx /= abs state.delta.dx
                                           then newDelta
                                           else state.delta }
-          _ -> Nothing
+              _ -> Nothing
 
 The `handleTick` function handles the `Tick` events, returning the
 updated state wrapped in `Just` if that event is being processed, and
@@ -159,11 +167,11 @@ we compose the functions using an auxiliary function `compose`:
 The `compose` function is defined as follows:
 % Foldpm.elm
 
-      compose : [a -> b -> Maybe b] -> (a -> b -> Maybe b)
+      compose : List (a -> b -> Maybe b) -> (a -> b -> Maybe b)
       compose steps =
           case steps of
-              [] -> \_ _ -> Nothing
-              f::fs -> \a b ->
+              [] -> \\_ _ -> Nothing
+              f::fs -> \\a b ->
                   case f a b of
                       Nothing -> (compose fs) a b
                       Just x -> Just x
@@ -215,18 +223,22 @@ The revised game has its own `main` function defined in the
 % SnakeRevisited.elm
       module SnakeRevisited where
 
+
+      import Graphics.Element (Element)
+      import Signal ((<~), Signal)
       import SnakeStateRevisited (..)
       import SnakeView (..)
+
 
       main : Signal Element
       main = view <~ stateSignal
 
 You can see that program in action [here](SnakeRevisited.html). From the user
 point of view it is analogous to the [*Snake.elm*](Snake.html)
-program presented in [Chapter 11](Chapter11Snake.html).
+program presented in [Chapter 13](Chapter13Snake.html).
 
 The `foldpm`, `when` and `compose` functions are more general and not
 specific to the snake program. They are defined in a separate module
 called [`Foldpm`](Foldpm.elm).
 
-|]
+"""

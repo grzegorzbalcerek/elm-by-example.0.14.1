@@ -11,6 +11,6 @@ process = unlines . filter (not . startsWithPercent) . lines
 main = do
   args <- getArgs
   let srcFile = head args
-  let targetFile = "target/" ++ srcFile
+  let targetFile = "src/" ++ srcFile
   content <- readFile srcFile
   writeFile targetFile (process content)

@@ -2,10 +2,12 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
 
-main = lift (pageTemplate [content] "Chapter5Eyes" "toc" "Chapter7DelayedCircles") Window.width
+main = Signal.map (pageTemplate [content] "Chapter5Eyes" "toc" "Chapter7DelayedCircles") Window.width
 
-content = [markdown|
+content = Markdown.toElement """
 
 # Chapter 6 Time Signals
 
@@ -45,8 +47,15 @@ program (a working example is available [here](TimeSignals.html)),
 presents a few examples of their use.
 
 % TimeSignals.elm
-      import Time
+      module TimeSignals where
+
+
+      import Graphics.Element (down, flow)
+      import List (map)
       import Mouse
+      import Signal ((~), (<~))
+      import Text (plainText)
+      import Time (delay, every, fps, fpsWhen, second, since, timestamp)
 
 
       showsignals a b c d e f =
@@ -56,12 +65,12 @@ presents a few examples of their use.
                   map
                       plainText
                       [
-                          "every (5*second): " ++ show a,
-                          "since (2*second) Mouse.clicks: " ++ show b,
-                          "timestamp Mouse.isDown: " ++ show c,
-                          "delay second Mouse.position: " ++ show d,
-                          "fps 200: " ++ show e,
-                          "fpsWhen 200 Mouse.isDown: " ++ show f
+                          "every (5*second): " ++ toString a,
+                          "since (2*second) Mouse.clicks: " ++ toString b,
+                          "timestamp Mouse.isDown: " ++ toString c,
+                          "delay second Mouse.position: " ++ toString d,
+                          "fps 200: " ++ toString e,
+                          "fpsWhen 200 Mouse.isDown: " ++ toString f
                       ]
 
 
@@ -102,5 +111,4 @@ when the mouse button is pressed.
 The [next](Chapter7DelayedCircles.html) chapter presents an example
 program that is using one of the functions presented above.
 
-|]
-
+"""

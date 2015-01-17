@@ -2,14 +2,18 @@
 
 import Lib (..)
 import Window
+import Signal
+import Markdown
+import Graphics.Element (..)
+import Graphics.Collage (..)
 
 content w = pageTemplate [content1,container w 620 middle picture1,content2]
-            "Chapter13TicTacToe" "toc" "Chapter15SnakeRevisited" w
-main = lift content Window.width
+            "Chapter12TicTacToe" "toc" "Chapter14SnakeRevisited" w
+main = Signal.map content Window.width
 
-content1 = [markdown|
+content1 = Markdown.toElement """
 
-# Chapter 14 Snake
+# Chapter 13 Snake
 
 The *[Snake.elm](Snake.elm)* program is a game, in which the player
 uses the keyboard arrows to choose the direction that the snake goes
@@ -35,31 +39,31 @@ usual module declaration and imports.
       module SnakeModel where
 
 
+      import List ((::), head, isEmpty, map, reverse, tail)
       import Set
-      import Maybe (maybe)
 
-Then it defines the following data types:
+Then it defines the following type aliases:
 % SnakeModel.elm
 
-      type Position =
+      type alias Position =
           { x: Int
           , y: Int
           }
 
 
-      type Delta =
+      type alias Delta =
           { dx: Int
           , dy: Int
           }
 
 
-      type Snake =
-          { front: [Position]
-          , back: [Position]
+      type alias Snake =
+          { front: List Position
+          , back: List Position
           }
 
 
-      type SnakeState =
+      type alias SnakeState =
           { snake: Snake
           , delta: Delta
           , food: Maybe Position
@@ -67,8 +71,8 @@ Then it defines the following data types:
           , gameOver: Bool
           }
 
-The `SnakeState` represents the state of the game. The `snake` member,
-of type `Snake`, contains the snake positions (the `Position` type) on
+`SnakeState` represents the state of the game. The `snake` member, of
+type `Snake`, contains the snake positions (the `Position` type) on
 the board, stored in two lists (it will be explained below why it is
 convenient to store it that way). The `delta` member, of type `Delta`,
 stores the current direction of the snake. At any given point in time,
@@ -105,7 +109,7 @@ The game state is changed in reaction to events represented by the
 following data type:
 % SnakeModel.elm
 
-      data Event = Tick Position | Direction Delta | NewGame | Ignore
+      type Event = Tick Position | Direction Delta | NewGame | Ignore
 
 The `Tick` event is periodically generated based on a time signal and
 contains a potential, new, randomly-generated position of the
@@ -147,7 +151,10 @@ the move.
       moveSnakeForward : Snake -> Delta -> Maybe Position -> Snake
       moveSnakeForward snake delta food =
           let next = nextPosition snake delta
-              tailFunction = maybe tail (\f -> if next == f then identity else tail) food
+              tailFunction =
+                  case food of
+                      Nothing -> tail
+                      Just f -> if next == f then identity else tail
           in
               if isEmpty snake.back
               then { front = [next]
@@ -179,10 +186,10 @@ snake positions (using the `Set.fromList` function) and uses the
 
       isInSnake : Snake -> Position -> Bool
       isInSnake snake position =
-          let frontSet = Set.fromList <| map show snake.front
-              backSet = Set.fromList <| map show snake.back
+          let frontSet = Set.fromList <| map toString snake.front
+              backSet = Set.fromList <| map toString snake.back
           in
-              Set.member (show position) frontSet || Set.member (show position) backSet
+              Set.member (toString position) frontSet || Set.member (toString position) backSet
 
 The `collision` function detects the collision state, that is a state
 in which the next position of the snake belongs to the snake or is outside
@@ -206,31 +213,13 @@ block of imports.
       module SnakeView where
 
 
-      import Text
-      import Maybe (maybe)
+      import Color (Color, black, blue, green, red, white)
+      import Graphics.Collage (Form, collage, filled, move, rect)
+      import Graphics.Element (Element, container, empty, midBottom, middle, layers)
+      import List (map)
+      import Maybe
       import SnakeModel (..)
-      import SnakeModel
-
-
-      type Position = SnakeModel.Position
-
-The `import SnakeModel (..)` line imports the members of the
-`SnakeModel` module. The two lines following it are needed to
-disambiguate the import of the `SnakeModel.Position` type.
-
-By default, members of several standard modules are imported by Elm
-programs. One of those modules is `Graphics.Element`, which defines a
-`Position` type. Without the disambiguation, that type would conflict
-with the `Position` type imported from `SnakeModel`. That would result in a
-compilation error.
-
-      Error in definition drawPosition:
-      Ambiguous usage of type 'Position'.
-          Disambiguate between: Graphics.Element.Position, SnakeModel.Position
-
-To disambiguate, we create an alias (using the `type` keyword) for the
-`SnakeModel.Position` type. Such local type declaration takes
-precedence over the imported declarations.
+      import Text
 
 The snake and the food are drawn using filled squares. The actual
 size of the squares and the size of the board boundaries are
@@ -265,7 +254,7 @@ The `drawPosition` function draws a single square on a given position.
 The `drawPositions` function draws squares representing positions from a list.
 % SnakeView.elm
 
-      drawPositions : Color -> [Position] -> Element
+      drawPositions : Color -> List Position -> Element
       drawPositions color positions =
           collage outerSize outerSize (map (drawPosition color) positions)
 
@@ -281,7 +270,7 @@ game is over.
 
       gameOver : Element
       gameOver =
-          Text.toText "Game Over"
+          Text.fromString "Game Over"
               |> Text.color red
               |> Text.bold
               |> Text.height 60
@@ -294,7 +283,7 @@ board.
 
       instructions : Element
       instructions =
-          plainText "Press the arrows to change the snake move direction.\nPress N to start a new game."
+          Text.plainText "Press the arrows to change the snake move direction.\nPress N to start a new game."
               |> container outerSize (outerSize+3*unit) midBottom
 
 The `view` function combines the above functions into one that draws
@@ -306,7 +295,7 @@ the whole game based on the state given in the argument.
                  , instructions
                  , drawPositions blue state.snake.front
                  , drawPositions blue state.snake.back
-                 , maybe empty drawFood state.food
+                 , Maybe.withDefault empty <| Maybe.map drawFood state.food
                  , if state.gameOver then gameOver else empty
                  ]
 
@@ -330,27 +319,20 @@ defined the functions showed on the figure, except for the
 `stateSignal` and `main` functions, which are defined in different
 modules.
 
-|]
+"""
 
-sigBox a b c w x line = signalFunctionBox 14 18 50 a b c w x (line*100-300-50)
-sigVertU line x = sigVerticalLine 25 x (line*100-238-50)
-sigVertD line x = sigVerticalLine 25 x (line*100-238-25-50)
-sigVert line x = sigVerticalLine 50 x (line*100-250-50)
-sigHoriz w line x = sigHorizontalLine w x (line*100-250-50)
-sigArr line x = sigDownwardArrow x (line*100-265-50)
+sigBox a b c w x line = signalFunctionBox 14 18 50 a b c w x (line*100-300)
+sigVertU line x = sigVerticalLine 25 x (line*100-238)
+sigVertD line x = sigVerticalLine 25 x (line*100-238-25)
+sigVert line x = sigVerticalLine 50 x (line*100-250)
+sigHoriz w line x = sigHorizontalLine w x (line*100-250)
+sigArr line x = sigDownwardArrow x (line*100-265)
 sigVertArr line x = group [sigVert line x, sigArr line x ]
 
-picture1 = collage 600 610
-  [ sigBox "Signal Int" "timeSignal" "fps" 100 0 6
+picture1 = collage 600 510
+  [ sigBox "Signal Int" "timeSignal" "fps" 100 0 5
 
-  , sigVertArr 5 -35
-  , sigVertArr 5 35
-
-  , sigBox "Signal Float" "xSignal" "Random.range" 100 -70 5
-  , sigBox "Signal Float" "ySignal" "Random.range" 100 70 5
-
-  , sigVertArr 4 -35
-  , sigVertArr 4 35
+  , sigVertArr 4 0
 
   , sigBox "Signal Event" "directionSignal" "Keyboard.arrows" 170 -200 4
   , sigBox "Signal Event" "tickSignal" "" 170 0 4
@@ -378,45 +360,50 @@ picture1 = collage 600 610
       module SnakeSignals where
 
 
-      import SnakeModel (..)
-      import SnakeView (..)
+      import Char
       import Keyboard
       import Random
-      import Char
+      import Signal ((<~), Signal, keepIf, mergeMany)
+      import SnakeModel (..)
+      import SnakeView (..)
+      import Time (Time, fps)
 
 -}
 
-content2 = [markdown|
+content2 = Markdown.toElement """
 
 The `timeSignal` function uses the `fps` function to produce a signal
-of `Int` values ticking with the approximate rate of 50 events per
+of `Time` values ticking with the approximate rate of 50 events per
 second.
+
 % SnakeSignals.elm
 
-      timeSignal : Signal Float
+      timeSignal : Signal Time
       timeSignal = fps 50
 
-The `xSignal` and `ySignal` functions use the `Random.range` function
-together with the `timeSignal` to produce a signal of random `Int`
-values from the range of `-boardSize` to `boardSize`.
 % SnakeSignals.elm
 
-      xSignal : Signal Int
-      xSignal = Random.range -boardSize boardSize timeSignal
+The `makeTick` function creates a `Tick` event given a `Time`
+value. Each such event carries a `Position` value representing the
+potential new food position.
 
+% SnakeSignals.elm
 
-      ySignal : Signal Int
-      ySignal = Random.range -boardSize boardSize timeSignal
+      makeTick : Time -> Event
+      makeTick time =
+          let seed1 = Random.initialSeed (round time)
+              (x,seed2) = Random.generate (Random.int -boardSize boardSize) seed1
+              (y,_) = Random.generate (Random.int -boardSize boardSize) seed2
+          in
+              Tick { x = x, y = y }
 
-The `tickSignal` function combines the `xSignal` and `ySignal` signals
-and produces a signal of `Tick` events. Each such event carries a
-`Position` value representing the potential new food position.
+The `tickSignal` function maps `makeTick` over the time signal,
+producing a signal of `Tick` events.
+
 % SnakeSignals.elm
 
       tickSignal : Signal Event
-      tickSignal =
-          let combine x y = Tick { x = x, y = y }
-          in  combine <~ xSignal ~ ySignal
+      tickSignal = makeTick <~ timeSignal
 
 The `directionSignal` function uses the `Keyboard.arrows` function and
 produces a signal of the directions the snake should move to.
@@ -429,7 +416,7 @@ produces a signal of the directions the snake should move to.
                     | x /= 0 -> Direction { dx = x, dy = 0 }
                     | otherwise  -> Direction { dx = 0, dy = y }          
         in
-            lift arrowsToDelta Keyboard.arrows
+            arrowsToDelta <~ Keyboard.arrows
 
 The `newGameSignal` function produces a signal of `NewGame`
 events. The events are generated when the player presses the “N” key
@@ -449,7 +436,7 @@ the input signals have the same signature.
 % SnakeSignals.elm
 
       eventSignal : Signal Event
-      eventSignal = merges [tickSignal, directionSignal, newGameSignal]
+      eventSignal = mergeMany [tickSignal, directionSignal, newGameSignal]
 
 The `stateSignal` function is defined in the `StateState` module. The
 module obviously starts with the module declaration and imports.
@@ -458,6 +445,8 @@ module obviously starts with the module declaration and imports.
       module SnakeState where
 
 
+      import List (head)
+      import Signal (Signal, foldp)
       import SnakeModel (..)
       import SnakeSignals (..)
 
@@ -559,6 +548,8 @@ The `Snake` module implements the `main` function.
       module Snake where
 
 
+      import Graphics.Element (Element)
+      import Signal ((<~), Signal)
       import SnakeState (..)
       import SnakeView (..)
 
@@ -574,7 +565,7 @@ function, that reacts to each possible combination of input event and
 current state. The solution works, but it has the disadvantage that
 the function which transforms the state may become big and difficult
 to maintain for larger programs. The
-[next](Chapter15SnakeRevisited.html) chapter presents an alternative
+[next](Chapter14SnakeRevisited.html) chapter presents an alternative
 solution for implementing the same game.
 
-|]
+"""
