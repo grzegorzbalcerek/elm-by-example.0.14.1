@@ -217,14 +217,13 @@ depending on the value of the condition placed between the `if` and
 is a value of type `Bool`, which has two possibles values: `True` or
 `False`.
 
-In our case the condition verifies whether the value `n` is less then
-or equal to `0`. If the conditional expression evaluates to `True`,
-the result of the whole `if` expression is the result of evaluating
-the expression after the `then` keyword. Otherwise, it is the result
-of evaluating the expression after the `else` keyword. In our case,
-when `n` is less then or equal to `2`, the `fibonacci'` function
-returns the value of the accumulator `acc`. Otherwise, it calls itself
-with the new values of `n` and `acc` calculated by the expression:
+If the conditional expression evaluates to `True`, the result of the
+whole `if` expression is the result of evaluating the expression after
+the `then` keyword. Otherwise, it is the result of evaluating the
+expression after the `else` keyword. In our case, when `n` is less
+then or equal to `2`, the `fibonacci'` function returns the value of
+the accumulator `acc`. Otherwise, it calls itself with the new values
+of `n` and `acc` calculated by the expression:
 
       (head acc + (tail >> head) acc) :: acc
 

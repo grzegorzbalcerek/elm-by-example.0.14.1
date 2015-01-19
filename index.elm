@@ -20,7 +20,7 @@ import CalculatorModel
 import Signal
 import Markdown
 
-version = "Built on 2015-01-16 using Elm 0.14.1."
+version = "Built on 2015-01-19 using Elm 0.14.1."
 
 main = Signal.map content Window.width
 
