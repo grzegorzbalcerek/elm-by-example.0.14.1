@@ -17,13 +17,16 @@ The first example will display the “Hello World” message. The program
 
 % HelloWorld1.elm
       import Text
-      main = Text.plainText "Hello World"
+      import Graphics.Element
+      main = Graphics.Element.leftAligned (Text.fromString "Hello World")
 
 The first line — `import Text` — imports the `Text` module, allowing
 us to reference its functions in our program. We need the import,
-since our program uses the `plainText` function that is defined in
+since our program uses the `fromString` function that is defined in
 that module. We reference a function by prefixing the function name
-with the module name and the dot.
+with the module name and the dot. We also import the `leftAligned`
+function from the `Graphics.Element` module which allows us to convert
+our text into a displayable HTML element.
 
 The meaning of an Elm program is defined by the `main` function. Every
 program needs to define one. To define a function, we provide its name
@@ -31,11 +34,13 @@ followed by the `=` character and the function body. Functions may
 have parameters, which are declared between the function name and the
 equals sign. The `main` function does not have parameters.
 
-The body of our function contains a call to the `Text.plainText` function
+The body of our function contains a call to the `Text.fromString` function
 with one argument — the “Hello World” string. The string is delimited
 with the quotation marks. The function argument is separated from the
 function name by a single space (more spaces would do as well). Elm
-does not require enclosing function arguments in parenthesis.
+does not require enclosing function arguments in parenthesis. We enclose
+the result of calling `Text.fromString` into a parenthesis to pass it in
+as an argument to `Graphics.Element.leftAligned`.
 
 Before the program can be run, it needs to be compiled. If you create
 a directory with the *HelloWorld1.elm* program in it, you can use the
@@ -103,8 +108,8 @@ action [here](HelloWorld2.html).
       module HelloWorld2 where
 
 
-      import Color (blue)
-      import Graphics.Element (..)
+      import Color exposing (blue)
+      import Graphics.Element exposing (..)
       import Text
 
 
@@ -115,7 +120,7 @@ action [here](HelloWorld2.html).
               |> Text.italic
               |> Text.bold
               |> Text.height 60
-              |> Text.leftAligned
+              |> leftAligned
 
 The program begins with a module declaration. The declaration consists
 of the `module` keyword followed by the module name and the `where`
@@ -133,7 +138,7 @@ members, which introduces those members to the current namespace. We
 do this by following the module name with a list of imported values
 enclosed in parentheses. The second import statement imports one member
 (`blue`) from the `Color` module. Alternatively, we can replace the
-list with two dot characters, thus imporing everything that the module
+list with two dot characters, thus importing everything that the module
 exported. The third import is using that possiblity, importing
 everything that the `Graphics.Element` exported, including the
 `Element` type.
@@ -220,7 +225,7 @@ text value. Here is it’s type:
 
 Notice how the `->` operator not only separates the result type of the
 function from its arguments, but the same operator is also used for
-separatting one argument from the other.
+separating one argument from the other.
 
 The `italic` and `bold` functions, as their names suggest, modify the
 text to be italic and bold. The call to the `height` function sets the
@@ -238,14 +243,14 @@ Let us get back to the signatures of the `color` and `height`
 functions. Why is it, that the same operator — the `->` arrow — is
 used for what might seem to be two different things: to separate one
 function argument from the other and in the same time to separate the
-arguments from the function result type? In fact, stricly speaking,
+arguments from the function result type? In fact, strictly speaking,
 all Elm functions can only take at most one argument. The `color`
 function, which can in many circumstances be treated just as a
 function taking two arguments, is more formally speaking a
 one-argument function taking an argument of the `Color` type, that
 returns another one-argument function, taking an argument of the
 `Text` type, which in turn returns the result of type `Text`. It might
-seem to be a small technical distinction only and in many situtions it
+seem to be a small technical distinction only and in many situations it
 can be ignored. However, it also allows us to use a useful programming
 technique of partially applying a function. Consider the
 *[HelloWorld3.elm](HelloWorld3.elm)* program, which displays the same
@@ -256,8 +261,8 @@ a slightly different way.
       module HelloWorld3 where
 
 
-      import Color (blue)
-      import Graphics.Element (..)
+      import Color exposing (blue)
+      import Graphics.Element exposing (..)
       import Text as T
 
 
@@ -272,7 +277,7 @@ a slightly different way.
               |> T.italic
               |> T.bold
               |> T.height 60
-              |> T.leftAligned
+              |> leftAligned
 
 The first difference is the use of a *qualified* import. By suffixing
 the import statement for the `Text` module with the `as T` clause, we
